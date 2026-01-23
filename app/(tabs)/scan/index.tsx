@@ -31,7 +31,7 @@ export default function ScanScreen() {
         });
       }
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       console.error('Analysis error:', error);
       Alert.alert(
         'Analysis Failed', 

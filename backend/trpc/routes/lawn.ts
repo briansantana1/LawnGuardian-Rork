@@ -37,7 +37,7 @@ async function generateObject<T extends ZodSchema>(params: GenerateObjectParams 
 
   const result = await response.json();
   console.log("[generateObject] Response received");
-  return result as T;
+  return result as z.infer<T>;
 }
 
 function zodToJsonSchema(schema: ZodSchema): object {
