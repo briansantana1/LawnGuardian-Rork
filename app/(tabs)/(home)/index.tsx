@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   },
   heroOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
     paddingHorizontal: 20,
     alignItems: 'center',
   },
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   brandName: {
     fontSize: 18,
     fontWeight: '700' as const,
-    color: '#1a1a1a',
+    color: '#FFFFFF',
   },
   badgeRow: {
     flexDirection: 'row',
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
-    color: '#1a1a1a',
+    color: '#FFFFFF',
     marginLeft: 4,
   },
   badgeDot: {
@@ -381,14 +381,14 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 32,
     fontWeight: '800' as const,
-    color: '#1a1a1a',
+    color: '#FFFFFF',
     marginBottom: 12,
     lineHeight: 38,
     textAlign: 'center',
   },
   heroSubtitle: {
     fontSize: 15,
-    color: '#1a1a1a',
+    color: '#FFFFFF',
     lineHeight: 22,
     marginBottom: 24,
     textAlign: 'center',
@@ -431,12 +431,12 @@ const styles = StyleSheet.create({
   },
   featureBadgeText: {
     fontSize: 12,
-    color: '#1a1a1a',
+    color: '#FFFFFF',
     fontWeight: '500' as const,
   },
   worksWithText: {
     fontSize: 12,
-    color: '#1a1a1a',
+    color: '#FFFFFF',
     marginTop: 16,
     textAlign: 'center',
   },
