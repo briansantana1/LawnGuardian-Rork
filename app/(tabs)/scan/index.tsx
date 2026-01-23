@@ -19,7 +19,7 @@ export default function ScanScreen() {
   const grassTypes = Object.entries(GRASS_TYPE_LABELS) as [GrassType, string][];
 
   const analyzeMutation = trpc.lawn.analyzeLawn.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: { success: boolean; analysis: typeof analysisResult extends null ? never : NonNullable<typeof analysisResult>; analyzedAt: string }) => {
       console.log('Analysis successful:', data.analysis.diagnosis);
       setAnalysisResult(data.analysis);
       if (profile.scansRemaining > 0) {
@@ -31,7 +31,7 @@ export default function ScanScreen() {
         });
       }
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Analysis error:', error);
       Alert.alert(
         'Analysis Failed', 

@@ -13,7 +13,7 @@ interface GenerateObjectParams {
   schema: ZodSchema;
 }
 
-async function generateObject<T>(params: GenerateObjectParams): Promise<T> {
+async function generateObject<T extends ZodSchema>(params: GenerateObjectParams & { schema: T }): Promise<z.infer<T>> {
   console.log("[generateObject] Calling toolkit API at:", TOOLKIT_URL);
   
   const schemaJson = zodToJsonSchema(params.schema);
@@ -165,7 +165,7 @@ Be specific and actionable in your recommendations. Consider the grass type when
           schema: LawnAnalysisSchema,
         });
 
-        console.log("[analyzeLawn] Analysis completed successfully:", analysis.diagnosis);
+        console.log("[analyzeLawn] Analysis completed successfully:", (analysis as z.infer<typeof LawnAnalysisSchema>).diagnosis);
         
         return {
           success: true,
@@ -214,7 +214,7 @@ Be specific and actionable in your recommendations. Consider the grass type when
           schema: healthSchema,
         });
 
-        console.log("Lawn health score:", health.overallScore);
+        console.log("Lawn health score:", (health as { overallScore: number }).overallScore);
         
         return {
           success: true,
@@ -261,7 +261,7 @@ Be specific and actionable in your recommendations. Consider the grass type when
           schema: plantSchema,
         });
 
-        console.log("Plant identified:", plant.name);
+        console.log("Plant identified:", (plant as { name: string }).name);
         
         return {
           success: true,
@@ -306,11 +306,12 @@ Be specific and actionable in your recommendations. Consider the grass type when
           schema: tasksSchema,
         });
 
-        console.log("Seasonal tasks generated for season:", seasonalData.season);
+        const typedSeasonalData = seasonalData as z.infer<typeof tasksSchema>;
+        console.log("Seasonal tasks generated for season:", typedSeasonalData.season);
         
         return {
           success: true,
-          ...seasonalData,
+          ...typedSeasonalData,
           generatedAt: new Date().toISOString(),
         };
       } catch (error) {
