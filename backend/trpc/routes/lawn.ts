@@ -44,7 +44,8 @@ export const lawnRouter = createTRPCRouter({
       additionalNotes: z.string().optional().describe("Any additional context from user"),
     }))
     .mutation(async ({ input }) => {
-      console.log("Analyzing lawn image for grass type:", input.grassType);
+      console.log("[analyzeLawn] Starting analysis for grass type:", input.grassType);
+      console.log("[analyzeLawn] Image data length:", input.imageBase64.length);
       
       const systemPrompt = `You are an expert lawn care specialist and plant pathologist. Analyze the provided lawn image and identify any issues, diseases, pests, weeds, or problems.
 
@@ -63,6 +64,7 @@ Provide a comprehensive analysis including:
 Be specific and actionable in your recommendations. Consider the grass type when suggesting treatments.`;
 
       try {
+        console.log("[analyzeLawn] Calling AI generateObject...");
         const analysis = await generateObject({
           messages: [
             {
@@ -76,7 +78,7 @@ Be specific and actionable in your recommendations. Consider the grass type when
           schema: LawnAnalysisSchema,
         });
 
-        console.log("Lawn analysis completed:", analysis.diagnosis);
+        console.log("[analyzeLawn] Analysis completed successfully:", analysis.diagnosis);
         
         return {
           success: true,
@@ -84,8 +86,9 @@ Be specific and actionable in your recommendations. Consider the grass type when
           analyzedAt: new Date().toISOString(),
         };
       } catch (error) {
-        console.error("Lawn analysis error:", error);
-        throw new Error("Failed to analyze lawn image. Please try again.");
+        console.error("[analyzeLawn] Error:", error);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        throw new Error(`Failed to analyze lawn image: ${errorMessage}`);
       }
     }),
 

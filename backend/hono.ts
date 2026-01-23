@@ -7,6 +7,8 @@ import { createContext } from "./trpc/create-context";
 
 const app = new Hono();
 
+console.log("Backend server initializing...");
+
 app.use("*", cors());
 
 app.use(
@@ -19,7 +21,8 @@ app.use(
 );
 
 app.get("/", (c) => {
-  return c.json({ status: "ok", message: "API is running" });
+  console.log("Health check endpoint called");
+  return c.json({ status: "ok", message: "API is running", timestamp: new Date().toISOString() });
 });
 
 export default app;
