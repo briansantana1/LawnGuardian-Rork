@@ -158,12 +158,13 @@ export default function ScanScreen() {
       <View style={styles.content}>
         <View style={styles.upgradeBar}>
           <View style={styles.upgradeLeft}>
-            <Zap size={16} color={Colors.light.primary} />
-            <Text style={styles.upgradeText}>
+            <View style={styles.upgradeIconCircle}>
+              <Zap size={16} color={Colors.light.primary} fill={Colors.light.primary} />
+            </View>
+            <View style={styles.upgradeTextContainer}>
               <Text style={styles.upgradeCount}>{profile.scansRemaining} free scan remaining</Text>
-              {'\n'}
               <Text style={styles.upgradeSubtext}>Upgrade to Pro for unlimited scans</Text>
-            </Text>
+            </View>
           </View>
           <Pressable 
             style={styles.upgradeButton}
@@ -183,14 +184,16 @@ export default function ScanScreen() {
             <Zap size={12} color={Colors.light.primary} />
             <Text style={styles.featureBadgeText}>AI-Powered</Text>
           </View>
-          <View style={[styles.featureBadge, styles.featureBadgeOutline]}>
-            <Search size={12} color={Colors.light.primary} />
-            <Text style={[styles.featureBadgeText, styles.featureBadgeTextOutline]}>Disease Detection</Text>
+          <View style={[styles.featureBadge, styles.featureBadgeOrange]}>
+            <Search size={12} color="#D97706" />
+            <Text style={[styles.featureBadgeText, styles.featureBadgeTextOrange]}>Disease Detection</Text>
           </View>
           <View style={[styles.featureBadge, styles.featureBadgeOutline]}>
             <Leaf size={12} color={Colors.light.primary} />
             <Text style={[styles.featureBadgeText, styles.featureBadgeTextOutline]}>Weed Detection</Text>
           </View>
+        </View>
+        <View style={styles.featureBadgesCentered}>
           <View style={[styles.featureBadge, styles.featureBadgeOutline]}>
             <Shield size={12} color={Colors.light.primary} />
             <Text style={[styles.featureBadgeText, styles.featureBadgeTextOutline]}>Expert Treatments</Text>
@@ -203,16 +206,34 @@ export default function ScanScreen() {
             <Text style={styles.tipsTitle}>Tips for the Best Photo</Text>
           </View>
           <View style={styles.tipsGrid}>
-            {tips.map((tip, index) => (
-              <View key={index} style={styles.tipItem}>
-                {tip.good ? (
-                  <Check size={14} color={Colors.light.primary} />
-                ) : (
-                  <X size={14} color={Colors.light.error} />
-                )}
-                <Text style={[styles.tipText, !tip.good && styles.tipTextBad]}>{tip.text}</Text>
-              </View>
-            ))}
+            <View style={styles.tipsColumn}>
+              {tips.slice(0, 3).map((tip, index) => (
+                <View key={index} style={styles.tipItem}>
+                  <View style={[styles.tipIconCircle, !tip.good && styles.tipIconCircleBad]}>
+                    {tip.good ? (
+                      <Check size={12} color={Colors.light.primary} />
+                    ) : (
+                      <X size={12} color={Colors.light.error} />
+                    )}
+                  </View>
+                  <Text style={[styles.tipText, !tip.good && styles.tipTextBad]}>{tip.text}</Text>
+                </View>
+              ))}
+            </View>
+            <View style={styles.tipsColumn}>
+              {tips.slice(3, 6).map((tip, index) => (
+                <View key={index} style={styles.tipItem}>
+                  <View style={[styles.tipIconCircle, !tip.good && styles.tipIconCircleBad]}>
+                    {tip.good ? (
+                      <Check size={12} color={Colors.light.primary} />
+                    ) : (
+                      <X size={12} color={Colors.light.error} />
+                    )}
+                  </View>
+                  <Text style={[styles.tipText, !tip.good && styles.tipTextBad]}>{tip.text}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
 
@@ -452,17 +473,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#D1FAE5',
+    backgroundColor: '#F0FDF4',
     borderRadius: 12,
-    padding: 14,
+    padding: 12,
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
   },
   upgradeLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  upgradeText: {
+  upgradeIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#DCFCE7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  upgradeTextContainer: {
     marginLeft: 10,
     flex: 1,
   },
@@ -474,54 +505,72 @@ const styles = StyleSheet.create({
   upgradeSubtext: {
     fontSize: 12,
     color: Colors.light.textSecondary,
+    marginTop: 1,
   },
   upgradeButton: {
     backgroundColor: Colors.light.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
     borderRadius: 8,
   },
   upgradeButtonText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600' as const,
     color: '#FFF',
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700' as const,
     color: Colors.light.text,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
     color: Colors.light.textSecondary,
     lineHeight: 20,
     marginBottom: 20,
+    textAlign: 'center',
+    paddingHorizontal: 10,
   },
   featureBadges: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 24,
+    marginBottom: 8,
+    justifyContent: 'center',
+  },
+  featureBadgesCentered: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
   featureBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#D1FAE5',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: 20,
-    gap: 4,
+    gap: 6,
+  },
+  featureBadgeOrange: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FCD34D',
   },
   featureBadgeOutline: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: Colors.light.border,
+    borderColor: '#E5E7EB',
   },
   featureBadgeText: {
     fontSize: 12,
     color: Colors.light.text,
     fontWeight: '500' as const,
+  },
+  featureBadgeTextOrange: {
+    color: '#D97706',
   },
   featureBadgeTextOutline: {
     color: Colors.light.textSecondary,
@@ -532,7 +581,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: Colors.light.border,
+    borderColor: '#E5E7EB',
   },
   tipsHeader: {
     flexDirection: 'row',
@@ -546,18 +595,35 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
   },
   tipsGrid: {
-    gap: 10,
+    flexDirection: 'row',
+    gap: 16,
+  },
+  tipsColumn: {
+    flex: 1,
+    gap: 12,
   },
   tipItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 8,
   },
+  tipIconCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#D1FAE5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 1,
+  },
+  tipIconCircleBad: {
+    backgroundColor: '#FEE2E2',
+  },
   tipText: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.light.textSecondary,
     flex: 1,
-    lineHeight: 18,
+    lineHeight: 16,
   },
   tipTextBad: {
     color: Colors.light.error,
