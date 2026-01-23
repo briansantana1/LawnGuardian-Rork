@@ -4,10 +4,10 @@ import { useRouter } from 'expo-router';
 import { Camera, Upload, Zap, Search, Leaf, Shield, Check, X, ChevronDown, AlertCircle, Sparkles } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
-import { useMutation } from '@tanstack/react-query';
 import Colors from '@/constants/colors';
 import { useLawn } from '@/providers/LawnProvider';
 import { GrassType, GRASS_TYPE_LABELS } from '@/types/lawn';
+import { trpc } from '@/lib/trpc';
 
 export default function ScanScreen() {
   const router = useRouter();
@@ -18,97 +18,7 @@ export default function ScanScreen() {
 
   const grassTypes = Object.entries(GRASS_TYPE_LABELS) as [GrassType, string][];
 
-  const analyzeMutation = useMutation({
-    mutationFn: async (params: { imageBase64: string; grassType: string; location?: string }) => {
-      console.log('[analyzeLawn] Starting analysis for grass type:', params.grassType);
-      
-      const TOOLKIT_URL = process.env.EXPO_PUBLIC_TOOLKIT_URL || 'https://toolkit.rork.com';
-      
-      const systemPrompt = `You are an expert lawn care specialist and plant pathologist. Analyze the provided lawn image and identify any issues, diseases, pests, weeds, or problems.
-
-Context:
-- Grass Type: ${params.grassType}
-${params.location ? `- Location: ${params.location}` : ''}
-
-Provide a comprehensive analysis including:
-1. Primary diagnosis of any visible problems
-2. Severity assessment
-3. Detailed treatment plan with immediate, short-term, and long-term recommendations
-4. Product recommendations specific to the grass type
-5. Prevention tips for future lawn health
-
-Be specific and actionable in your recommendations. Consider the grass type when suggesting treatments.`;
-
-      const schema = {
-        type: 'object',
-        properties: {
-          diagnosis: { type: 'string', description: 'Primary diagnosis of the lawn problem' },
-          severity: { type: 'string', enum: ['mild', 'moderate', 'severe'], description: 'Severity level' },
-          confidence: { type: 'number', minimum: 0, maximum: 100, description: 'Confidence percentage' },
-          issues: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                name: { type: 'string' },
-                description: { type: 'string' },
-                type: { type: 'string', enum: ['disease', 'pest', 'weed', 'nutrient_deficiency', 'environmental', 'other'] }
-              },
-              required: ['name', 'description', 'type']
-            }
-          },
-          healthScore: { type: 'number', minimum: 0, maximum: 100 },
-          treatment: {
-            type: 'object',
-            properties: {
-              immediate: { type: 'array', items: { type: 'string' } },
-              shortTerm: { type: 'array', items: { type: 'string' } },
-              longTerm: { type: 'array', items: { type: 'string' } },
-              products: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    name: { type: 'string' },
-                    purpose: { type: 'string' },
-                    applicationTiming: { type: 'string' }
-                  },
-                  required: ['name', 'purpose', 'applicationTiming']
-                }
-              }
-            },
-            required: ['immediate', 'shortTerm', 'longTerm', 'products']
-          },
-          preventionTips: { type: 'array', items: { type: 'string' } }
-        },
-        required: ['diagnosis', 'severity', 'confidence', 'issues', 'healthScore', 'treatment', 'preventionTips']
-      };
-
-      const response = await fetch(`${TOOLKIT_URL}/agent/object`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'text', text: systemPrompt },
-              { type: 'image', image: params.imageBase64 }
-            ]
-          }],
-          schema
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[analyzeLawn] API error:', response.status, errorText);
-        throw new Error(`Analysis failed: ${response.status}`);
-      }
-
-      const analysis = await response.json();
-      console.log('[analyzeLawn] Analysis completed:', analysis.diagnosis);
-      return { analysis, analyzedAt: new Date().toISOString() };
-    },
+  const analyzeMutation = trpc.lawn.analyzeLawn.useMutation({
     onSuccess: (data) => {
       console.log('Analysis successful:', data.analysis.diagnosis);
       setAnalysisResult(data.analysis);
