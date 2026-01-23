@@ -8,6 +8,7 @@ import { createContext } from "./trpc/create-context";
 const app = new Hono();
 
 console.log("[Backend] Server initializing at", new Date().toISOString());
+console.log("[Backend] Build version: 5 - fixed toolkit import");
 
 app.use("*", cors());
 

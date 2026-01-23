@@ -1,6 +1,93 @@
 import * as z from "zod";
-import { generateObject } from "@rork-ai/toolkit-sdk";
 import { createTRPCRouter, publicProcedure } from "../create-context";
+
+const TOOLKIT_URL = process.env.EXPO_PUBLIC_TOOLKIT_URL || "https://toolkit.rork.com";
+
+type ZodSchema = z.ZodType<unknown>;
+
+interface GenerateObjectParams {
+  messages: Array<{
+    role: "user" | "assistant";
+    content: string | Array<{ type: "text"; text: string } | { type: "image"; image: string }>;
+  }>;
+  schema: ZodSchema;
+}
+
+async function generateObject<T>(params: GenerateObjectParams): Promise<T> {
+  console.log("[generateObject] Calling toolkit API at:", TOOLKIT_URL);
+  
+  const schemaJson = zodToJsonSchema(params.schema);
+  
+  const response = await fetch(`${TOOLKIT_URL}/agent/object`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messages: params.messages,
+      schema: schemaJson,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("[generateObject] API error:", response.status, errorText);
+    throw new Error(`AI API error: ${response.status} - ${errorText}`);
+  }
+
+  const result = await response.json();
+  console.log("[generateObject] Response received");
+  return result as T;
+}
+
+function zodToJsonSchema(schema: ZodSchema): object {
+  const def = (schema as { _def?: { typeName?: string; shape?: () => Record<string, ZodSchema>; values?: string[]; checks?: Array<{ kind: string; value?: number }>; innerType?: ZodSchema; description?: string } })._def;
+  if (!def) return { type: "object" };
+  
+  const typeName = def.typeName;
+  const description = def.description;
+  
+  const addDescription = (obj: object): object => {
+    if (description) return { ...obj, description };
+    return obj;
+  };
+  
+  switch (typeName) {
+    case "ZodString":
+      return addDescription({ type: "string" });
+    case "ZodNumber": {
+      const result: { type: string; minimum?: number; maximum?: number } = { type: "number" };
+      def.checks?.forEach((check: { kind: string; value?: number }) => {
+        if (check.kind === "min" && check.value !== undefined) result.minimum = check.value;
+        if (check.kind === "max" && check.value !== undefined) result.maximum = check.value;
+      });
+      return addDescription(result);
+    }
+    case "ZodBoolean":
+      return addDescription({ type: "boolean" });
+    case "ZodEnum":
+      return addDescription({ type: "string", enum: def.values });
+    case "ZodArray":
+      return addDescription({ type: "array", items: def.innerType ? zodToJsonSchema(def.innerType) : {} });
+    case "ZodObject": {
+      const shape = def.shape?.() || {};
+      const properties: Record<string, object> = {};
+      const required: string[] = [];
+      for (const [key, value] of Object.entries(shape)) {
+        properties[key] = zodToJsonSchema(value as ZodSchema);
+        const valueDef = (value as { _def?: { typeName?: string } })._def;
+        if (valueDef?.typeName !== "ZodOptional") {
+          required.push(key);
+        }
+      }
+      return addDescription({ type: "object", properties, required });
+    }
+    case "ZodOptional":
+      return def.innerType ? zodToJsonSchema(def.innerType) : {};
+    default:
+      return addDescription({ type: "string" });
+  }
+}
 
 const LawnAnalysisSchema = z.object({
   diagnosis: z.string().describe("Primary diagnosis of the lawn problem"),
