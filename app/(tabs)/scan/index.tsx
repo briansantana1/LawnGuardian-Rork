@@ -33,15 +33,16 @@ export default function ScanScreen() {
     },
     onError: (error) => {
       console.error('Analysis error:', error);
-      const isNetworkError = error.message?.includes('Failed to fetch') || error.message?.includes('Network');
+      const isNetworkError = error.message?.includes('Failed to fetch') || error.message?.includes('Network') || error.message?.includes('Unavailable');
       Alert.alert(
-        isNetworkError ? 'Connection Error' : 'Analysis Failed', 
+        isNetworkError ? 'Server Busy' : 'Analysis Failed', 
         isNetworkError 
-          ? 'Unable to connect to the server. Please check your internet connection and try again.'
+          ? 'The server is temporarily busy. Please wait a moment and try again.'
           : (error.message || 'Failed to analyze image. Please try again.')
       );
     },
-    retry: 1,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   });
 
   const [analysisResult, setAnalysisResult] = useState<{
