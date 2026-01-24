@@ -224,8 +224,25 @@ Be very specific and detailed - this is a premium paid service. Avoid generic ad
   }, [selectedImage, selectedGrassType, analysisResult, isAnalyzing, analyzeImage]);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.content}>
+    <View style={styles.container}>
+      {analysisResult && (
+        <View style={styles.diagnosisNavHeader}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => {
+              hasAutoAnalyzed.current = false;
+              setSelectedImage(null);
+              setAnalysisResult(null);
+            }}
+          >
+            <ArrowLeft size={24} color={Colors.light.text} />
+          </Pressable>
+          <Text style={styles.diagnosisNavTitle}>Diagnosis</Text>
+          <View style={styles.backButtonPlaceholder} />
+        </View>
+      )}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
         <View style={styles.upgradeBar}>
           <View style={styles.upgradeLeft}>
             <View style={styles.upgradeIconCircle}>
@@ -410,17 +427,6 @@ Be very specific and detailed - this is a premium paid service. Avoid generic ad
 
         {analysisResult && (
           <View style={styles.resultsContainer}>
-            <View style={styles.diagnosisNavHeader}>
-              <Pressable
-                style={styles.backButton}
-                onPress={() => router.push('/(tabs)/(home)')}
-              >
-                <ArrowLeft size={24} color={Colors.light.text} />
-              </Pressable>
-              <Text style={styles.diagnosisNavTitle}>Diagnosis</Text>
-              <View style={styles.backButtonPlaceholder} />
-            </View>
-
             <View style={styles.diagnosisHeaderCard}>
               <View style={styles.diagnosisTitleRow}>
                 <View style={styles.diagnosisTitleLeft}>
@@ -619,8 +625,9 @@ Be very specific and detailed - this is a premium paid service. Avoid generic ad
         )}
 
         <View style={styles.bottomPadding} />
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -628,6 +635,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.light.background,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: 20,
@@ -987,7 +997,8 @@ const styles = StyleSheet.create({
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     paddingVertical: 12,
-    marginBottom: 16,
+    paddingHorizontal: 20,
+    backgroundColor: Colors.light.background,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.border,
   },
