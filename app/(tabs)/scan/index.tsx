@@ -13,14 +13,11 @@ import { generateObject } from '@rork-ai/toolkit-sdk';
 export default function ScanScreen() {
   const router = useRouter();
   const { profile, addSavedPlan } = useLawn();
-  const [selectedGrassType, setSelectedGrassType] = useState<GrassType | null>(profile.grassType || null);
+  
+  const [selectedGrassType, setSelectedGrassType] = useState<GrassType | null>(null);
   const [showGrassDropdown, setShowGrassDropdown] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-  const grassTypes = Object.entries(GRASS_TYPE_LABELS) as [GrassType, string][];
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const hasAutoAnalyzed = useRef(false);
-
   const [analysisResult, setAnalysisResult] = useState<{
     diagnosis: string;
     diagnosisTitle: string;
@@ -43,6 +40,18 @@ export default function ScanScreen() {
     preventionTips: string[];
     healthScore: number;
   } | null>(null);
+  
+  const hasAutoAnalyzed = useRef(false);
+  const hasInitializedGrassType = useRef(false);
+  
+  const grassTypes = Object.entries(GRASS_TYPE_LABELS) as [GrassType, string][];
+
+  useEffect(() => {
+    if (!hasInitializedGrassType.current && profile.grassType) {
+      hasInitializedGrassType.current = true;
+      setSelectedGrassType(profile.grassType);
+    }
+  }, [profile.grassType]);
 
   const tips = [
     { text: 'Get close to the problem area (2-3 feet away)', good: true },
@@ -219,7 +228,10 @@ Be very specific and detailed - this is a premium paid service. Avoid generic ad
   useEffect(() => {
     if (selectedImage && selectedGrassType && !analysisResult && !isAnalyzing && !hasAutoAnalyzed.current) {
       hasAutoAnalyzed.current = true;
-      analyzeImage();
+      const timer = setTimeout(() => {
+        analyzeImage();
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [selectedImage, selectedGrassType, analysisResult, isAnalyzing, analyzeImage]);
 
