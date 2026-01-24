@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ImageBackground, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Camera, Zap, Search, Leaf, Shield, Sun, Scissors, Bell, ChevronRight, RefreshCw, AlertCircle, Droplet, AlertTriangle, Calendar, Cloud } from 'lucide-react-native';
+import { Camera, Zap, Search, Leaf, Shield, Sun, Scissors, ChevronRight, RefreshCw, AlertCircle, Droplet, AlertTriangle, Calendar, Cloud } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { useLawn } from '@/providers/LawnProvider';
 
@@ -309,22 +309,6 @@ export default function HomeScreen() {
           </View>
           <Text style={styles.featureCardTitle}>Treatment Tracker</Text>
           <Text style={styles.featureCardDesc}>Log treatments and schedule upcoming lawn care tasks</Text>
-        </Pressable>
-
-        <Pressable 
-          style={({ pressed }) => [styles.notificationCard, pressed && { opacity: 0.9 }]}
-          onPress={() => router.push('/notifications')}
-        >
-          <View style={styles.notificationIcon}>
-            <Bell size={24} color="#FFF" />
-          </View>
-          <View style={styles.notificationContent}>
-            <Text style={styles.notificationTitle}>Enable Smart Notifications</Text>
-            <Text style={styles.notificationDesc}>Get alerts when conditions favor disease or weeds</Text>
-          </View>
-          <View style={styles.enableButton}>
-            <Text style={styles.enableButtonText}>Enable</Text>
-          </View>
         </Pressable>
 
         <View style={styles.ctaSection}>
@@ -887,48 +871,6 @@ const styles = StyleSheet.create({
   featureCardPressed: {
     opacity: 0.7,
     transform: [{ scale: 0.98 }],
-  },
-  notificationCard: {
-    backgroundColor: Colors.light.primary,
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  notificationIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  notificationContent: {
-    flex: 1,
-  },
-  notificationTitle: {
-    fontSize: 15,
-    fontWeight: '600' as const,
-    color: '#FFF',
-    marginBottom: 2,
-  },
-  notificationDesc: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
-  },
-  enableButton: {
-    backgroundColor: '#FFF',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  enableButtonText: {
-    fontSize: 13,
-    fontWeight: '600' as const,
-    color: Colors.light.primary,
   },
   ctaSection: {
     alignItems: 'center',
