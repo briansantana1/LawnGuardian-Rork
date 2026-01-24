@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, Plus, Sparkles, CalendarDays } from 'lucide-react-native';
+import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, Plus, Sparkles, CalendarDays, X } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 
 interface TreatmentEntry {
@@ -21,6 +21,9 @@ export default function CalendarScreen() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 23));
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(2026, 0, 23));
   const [entries, setEntries] = useState<TreatmentEntry[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [treatmentName, setTreatmentName] = useState('');
+  const [treatmentNotes, setTreatmentNotes] = useState('');
 
   const getDaysInMonth = useCallback((date: Date) => {
     const year = date.getFullYear();
@@ -85,16 +88,37 @@ export default function CalendarScreen() {
     return entries.filter(e => e.date === dateStr);
   };
 
+  const openAddModal = () => {
+    setTreatmentName('');
+    setTreatmentNotes('');
+    setShowAddModal(true);
+  };
+
+  const closeAddModal = () => {
+    setShowAddModal(false);
+    setTreatmentName('');
+    setTreatmentNotes('');
+  };
+
   const addEntry = () => {
+    if (!treatmentName.trim()) return;
+    
     const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
     const newEntry: TreatmentEntry = {
       id: Date.now().toString(),
       date: dateStr,
-      title: 'New Treatment',
-      description: 'Treatment description',
-      type: 'fertilizer',
+      title: treatmentName.trim(),
+      description: treatmentNotes.trim() || 'No notes',
+      type: 'other',
     };
     setEntries([...entries, newEntry]);
+    closeAddModal();
+  };
+
+  const formatModalDate = () => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayName = days[selectedDate.getDay()];
+    return `${dayName}, ${MONTHS[selectedDate.getMonth()]} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`;
   };
 
   const formatSelectedDate = () => {
@@ -220,7 +244,7 @@ export default function CalendarScreen() {
               <Calendar size={18} color={Colors.light.primary} />
               <Text style={styles.selectedDateTitle}>{formatSelectedDate()}</Text>
             </View>
-            <Pressable style={styles.addEntryButton} onPress={addEntry}>
+            <Pressable style={styles.addEntryButton} onPress={openAddModal}>
               <Plus size={16} color="#FFF" />
               <Text style={styles.addEntryButtonText}>Add Entry</Text>
             </Pressable>
@@ -255,6 +279,59 @@ export default function CalendarScreen() {
 
         <View style={styles.bottomPadding} />
       </ScrollView>
+
+      <Modal
+        visible={showAddModal}
+        transparent
+        animationType="fade"
+        onRequestClose={closeAddModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Add Entry</Text>
+              <Pressable onPress={closeAddModal} style={styles.modalCloseButton}>
+                <X size={20} color={Colors.light.textSecondary} />
+              </Pressable>
+            </View>
+
+            <Text style={styles.modalDate}>{formatModalDate()}</Text>
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Treatment name"
+              placeholderTextColor={Colors.light.textMuted}
+              value={treatmentName}
+              onChangeText={setTreatmentName}
+              autoFocus
+            />
+
+            <TextInput
+              style={[styles.modalInput, styles.modalNotesInput]}
+              placeholder="Notes (optional)"
+              placeholderTextColor={Colors.light.textMuted}
+              value={treatmentNotes}
+              onChangeText={setTreatmentNotes}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+
+            <View style={styles.modalButtons}>
+              <Pressable style={styles.modalCancelButton} onPress={closeAddModal}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable 
+                style={[styles.modalAddButton, !treatmentName.trim() && styles.modalAddButtonDisabled]} 
+                onPress={addEntry}
+                disabled={!treatmentName.trim()}
+              >
+                <Text style={styles.modalAddButtonText}>Add Entry</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -572,5 +649,87 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 40,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: Colors.light.text,
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalDate: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+    marginBottom: 20,
+  },
+  modalInput: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: Colors.light.text,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  modalNotesInput: {
+    minHeight: 80,
+    paddingTop: 12,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 8,
+  },
+  modalCancelButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  modalCancelText: {
+    fontSize: 15,
+    color: Colors.light.textSecondary,
+    fontWeight: '500' as const,
+  },
+  modalAddButton: {
+    backgroundColor: Colors.light.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+  },
+  modalAddButtonDisabled: {
+    opacity: 0.5,
+  },
+  modalAddButtonText: {
+    fontSize: 15,
+    color: '#FFF',
+    fontWeight: '600' as const,
   },
 });
