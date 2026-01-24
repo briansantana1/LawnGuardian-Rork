@@ -231,7 +231,7 @@ export default function PlansScreen() {
                 </>
               )}
             </View>
-            <Text style={styles.monthlyBreakdown}>Billed annually</Text>
+            <Text style={styles.monthlyBreakdown}>$6.67/month, billed annually</Text>
             {annualFeatures.map((feature, index) => (
               <View key={index} style={styles.featureRow}>
                 <Check size={16} color={Colors.light.primary} />
@@ -251,6 +251,7 @@ export default function PlansScreen() {
                 </Text>
               )}
             </Pressable>
+            <Text style={styles.paymentBreakdown}>12 payments of $6.67/month billed as one payment of $79.99/year.</Text>
             <Text style={styles.cancelText}>Cancel anytime. Keep access until period ends.</Text>
           </View>
 
@@ -491,6 +492,12 @@ const styles = StyleSheet.create({
     color: Colors.light.textMuted,
     textAlign: 'center',
     marginTop: 8,
+  },
+  paymentBreakdown: {
+    fontSize: 11,
+    color: Colors.light.textMuted,
+    textAlign: 'center',
+    marginTop: 12,
   },
   trustBadges: {
     flexDirection: 'row',
