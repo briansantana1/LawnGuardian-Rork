@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, Alert, Platform, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { User, MapPin, Leaf, Key, ChevronRight, CreditCard, XCircle, RefreshCw, Mail, FileText, LogOut, LogIn, Trash2, X, ChevronDown } from 'lucide-react-native';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import Colors from '@/constants/colors';
 import { useLawn } from '@/providers/LawnProvider';
 import { GrassType, GRASS_TYPE_LABELS } from '@/types/lawn';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { profile, updateProfile, signOut, signIn, isSignedIn } = useLawn();
+  const { profile, updateProfile, signOut, signIn, signInWithApple, signInWithGoogle, isSignedIn, isAuthLoading } = useLawn();
+  const [isAppleAuthAvailable, setIsAppleAuthAvailable] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState(profile.name);
   const [editEmail, setEditEmail] = useState(profile.email);
@@ -17,6 +19,12 @@ export default function ProfileScreen() {
   const [showGrassDropdown, setShowGrassDropdown] = useState(false);
 
   const grassTypes = Object.entries(GRASS_TYPE_LABELS) as [GrassType, string][];
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      AppleAuthentication.isAvailableAsync().then(setIsAppleAuthAvailable);
+    }
+  }, []);
 
   const handleSaveChanges = () => {
     updateProfile({
@@ -42,6 +50,24 @@ export default function ProfileScreen() {
         }
       },
     ]);
+  };
+
+  const handleAppleSignIn = async () => {
+    const result = await signInWithApple();
+    if (result.success) {
+      Alert.alert('Success', 'Signed in with Apple successfully!');
+    } else if (result.error && result.error !== 'Sign in was cancelled') {
+      Alert.alert('Error', result.error);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const result = await signInWithGoogle();
+    if (result.success) {
+      Alert.alert('Success', 'Signed in with Google successfully!');
+    } else if (result.error && result.error !== 'Google Sign In was cancelled or failed') {
+      Alert.alert('Error', result.error);
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -203,16 +229,56 @@ export default function ProfileScreen() {
               </Pressable>
             </>
           ) : (
-            <Pressable 
-              style={({ pressed }) => [styles.signInButton, pressed && styles.buttonPressed]}
-              onPress={() => {
-                signIn();
-                Alert.alert('Signed In', 'You have been signed in successfully.');
-              }}
-            >
-              <LogIn size={18} color="#FFF" />
-              <Text style={styles.signInButtonText}>Sign In</Text>
-            </Pressable>
+            <View style={styles.signInSection}>
+              <Text style={styles.signInTitle}>Sign In</Text>
+              <Text style={styles.signInSubtitle}>Sign in to sync your lawn care data across devices</Text>
+              
+              {isAuthLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color={Colors.light.primary} />
+                  <Text style={styles.loadingText}>Signing in...</Text>
+                </View>
+              ) : (
+                <>
+                  {Platform.OS !== 'web' && isAppleAuthAvailable && (
+                    <AppleAuthentication.AppleAuthenticationButton
+                      buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                      buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                      cornerRadius={12}
+                      style={styles.appleButton}
+                      onPress={handleAppleSignIn}
+                    />
+                  )}
+                  
+                  <Pressable 
+                    style={({ pressed }) => [styles.googleButton, pressed && styles.buttonPressed]}
+                    onPress={handleGoogleSignIn}
+                  >
+                    <View style={styles.googleIconContainer}>
+                      <Text style={styles.googleIcon}>G</Text>
+                    </View>
+                    <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                  </Pressable>
+
+                  <View style={styles.divider}>
+                    <View style={styles.dividerLine} />
+                    <Text style={styles.dividerText}>or</Text>
+                    <View style={styles.dividerLine} />
+                  </View>
+
+                  <Pressable 
+                    style={({ pressed }) => [styles.signInButton, pressed && styles.buttonPressed]}
+                    onPress={() => {
+                      signIn();
+                      Alert.alert('Signed In', 'You have been signed in successfully.');
+                    }}
+                  >
+                    <LogIn size={18} color="#FFF" />
+                    <Text style={styles.signInButtonText}>Continue as Guest</Text>
+                  </Pressable>
+                </>
+              )}
+            </View>
           )}
 
           <View style={styles.bottomPadding} />
@@ -512,6 +578,85 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600' as const,
     color: '#FFF',
+  },
+  signInSection: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  signInTitle: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.light.text,
+    textAlign: 'center' as const,
+    marginBottom: 8,
+  },
+  signInSubtitle: {
+    fontSize: 14,
+    color: Colors.light.textMuted,
+    textAlign: 'center' as const,
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  appleButton: {
+    width: '100%',
+    height: 50,
+    marginBottom: 12,
+  },
+  googleButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#DADCE0',
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  googleIconContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFF',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    marginRight: 12,
+  },
+  googleIcon: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: '#4285F4',
+  },
+  googleButtonText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: '#1F1F1F',
+  },
+  divider: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    marginVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.light.border,
+  },
+  dividerText: {
+    paddingHorizontal: 16,
+    fontSize: 13,
+    color: Colors.light.textMuted,
+  },
+  loadingContainer: {
+    alignItems: 'center' as const,
+    paddingVertical: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: Colors.light.textMuted,
   },
   deleteButton: {
     flexDirection: 'row',
