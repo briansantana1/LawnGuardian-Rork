@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ImageBackground, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -13,6 +13,12 @@ const GRASS_IMAGE = 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachm
 export default function HomeScreen() {
   const router = useRouter();
   const { profile, weather, soilTemperatures, aiInsights, tips, refreshAiInsights, isRefreshingInsights } = useLawn();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const weatherSectionY = useRef(0);
+
+  const scrollToWeather = () => {
+    scrollViewRef.current?.scrollTo({ y: weatherSectionY.current, animated: true });
+  };
 
   const getSoilTempColor = (temp: number) => {
     if (temp >= 70) return '#F87171';
@@ -44,7 +50,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView ref={scrollViewRef} style={styles.container} showsVerticalScrollIndicator={false}>
       <ImageBackground source={{ uri: GRASS_IMAGE }} style={styles.heroSection} resizeMode="cover">
         <View style={styles.heroOverlay}>
           <SafeAreaView edges={['top']}>
@@ -139,7 +145,12 @@ export default function HomeScreen() {
           <Text style={styles.aiInsightsLinkText}>Get AI Insights</Text>
         </Pressable>
 
-        <View style={styles.weatherCard}>
+        <View 
+          style={styles.weatherCard}
+          onLayout={(event) => {
+            weatherSectionY.current = event.nativeEvent.layout.y + 520;
+          }}
+        >
           <Text style={styles.weatherLocation}>{weather.location}</Text>
           <View style={styles.weatherMain}>
             <Text style={styles.weatherTemp}>{weather.temperature}°F</Text>
@@ -267,31 +278,43 @@ export default function HomeScreen() {
 
         <Text style={styles.everythingTitle}>Everything You Need</Text>
 
-        <View style={styles.featureCard}>
+        <Pressable 
+          style={({ pressed }) => [styles.featureCard, pressed && styles.featureCardPressed]}
+          onPress={() => router.push('/(tabs)/scan')}
+        >
           <View style={styles.featureCardIcon}>
             <Camera size={24} color={Colors.light.primary} />
           </View>
           <Text style={styles.featureCardTitle}>AI Photo Scan</Text>
           <Text style={styles.featureCardDesc}>Upload a photo and get instant diagnosis of lawn problems</Text>
-        </View>
+        </Pressable>
 
-        <View style={styles.featureCard}>
+        <Pressable 
+          style={({ pressed }) => [styles.featureCard, pressed && styles.featureCardPressed]}
+          onPress={scrollToWeather}
+        >
           <View style={styles.featureCardIcon}>
             <Sun size={24} color={Colors.light.warning} />
           </View>
           <Text style={styles.featureCardTitle}>Weather Insights</Text>
           <Text style={styles.featureCardDesc}>Track soil temperature and get treatment timing recommendations</Text>
-        </View>
+        </Pressable>
 
-        <View style={styles.featureCard}>
+        <Pressable 
+          style={({ pressed }) => [styles.featureCard, pressed && styles.featureCardPressed]}
+          onPress={() => router.push('/calendar')}
+        >
           <View style={styles.featureCardIcon}>
             <Calendar size={24} color={Colors.light.primary} />
           </View>
           <Text style={styles.featureCardTitle}>Treatment Tracker</Text>
           <Text style={styles.featureCardDesc}>Log treatments and schedule upcoming lawn care tasks</Text>
-        </View>
+        </Pressable>
 
-        <View style={styles.notificationCard}>
+        <Pressable 
+          style={({ pressed }) => [styles.notificationCard, pressed && { opacity: 0.9 }]}
+          onPress={() => router.push('/notifications')}
+        >
           <View style={styles.notificationIcon}>
             <Bell size={24} color="#FFF" />
           </View>
@@ -299,17 +322,17 @@ export default function HomeScreen() {
             <Text style={styles.notificationTitle}>Enable Smart Notifications</Text>
             <Text style={styles.notificationDesc}>Get alerts when conditions favor disease or weeds</Text>
           </View>
-          <Pressable style={styles.enableButton}>
+          <View style={styles.enableButton}>
             <Text style={styles.enableButtonText}>Enable</Text>
-          </Pressable>
-        </View>
+          </View>
+        </Pressable>
 
         <View style={styles.ctaSection}>
           <Text style={styles.ctaTitle}>Ready to restore your lawn?</Text>
           <Text style={styles.ctaSubtitle}>Join thousands of homeowners using AI to keep their lawns healthy.</Text>
           <Pressable 
             style={({ pressed }) => [styles.ctaButton, pressed && styles.buttonPressed]}
-            onPress={() => router.push('/(tabs)/scan')}
+            onPress={() => router.push('/plans')}
           >
             <Text style={styles.ctaButtonText}>Get Started Free</Text>
             <ChevronRight size={18} color="#FFF" />
@@ -860,6 +883,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.light.textSecondary,
     lineHeight: 18,
+  },
+  featureCardPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.98 }],
   },
   notificationCard: {
     backgroundColor: Colors.light.primary,
