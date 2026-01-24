@@ -7,8 +7,67 @@ import * as FileSystem from 'expo-file-system';
 import Colors from '@/constants/colors';
 import { useLawn } from '@/providers/LawnProvider';
 import { GrassType, GRASS_TYPE_LABELS } from '@/types/lawn';
-import { generateObject } from '@rork-ai/toolkit-sdk';
 import * as z from 'zod';
+
+function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
+  const def = (schema as { _def?: { typeName?: string; description?: string; checks?: { kind: string; value: number }[]; type?: z.ZodType; shape?: () => Record<string, z.ZodType>; values?: string[]; innerType?: z.ZodType } })._def;
+  const typeName = def?.typeName;
+
+  switch (typeName) {
+    case "ZodString":
+      return { type: "string", description: def?.description };
+    case "ZodNumber": {
+      const numSchema: Record<string, unknown> = { type: "number", description: def?.description };
+      if (def?.checks) {
+        for (const check of def.checks) {
+          if (check.kind === "min") numSchema.minimum = check.value;
+          if (check.kind === "max") numSchema.maximum = check.value;
+        }
+      }
+      return numSchema;
+    }
+    case "ZodBoolean":
+      return { type: "boolean", description: def?.description };
+    case "ZodArray":
+      return {
+        type: "array",
+        items: def?.type ? zodToJsonSchema(def.type) : {},
+        description: def?.description,
+      };
+    case "ZodObject": {
+      const properties: Record<string, unknown> = {};
+      const required: string[] = [];
+      const shape = def?.shape?.() || {};
+      for (const [key, value] of Object.entries(shape)) {
+        properties[key] = zodToJsonSchema(value as z.ZodType);
+        const valueDef = (value as { _def?: { typeName?: string } })._def;
+        if (valueDef?.typeName !== "ZodOptional") {
+          required.push(key);
+        }
+      }
+      return {
+        type: "object",
+        properties,
+        required: required.length > 0 ? required : undefined,
+        description: def?.description,
+      };
+    }
+    case "ZodEnum":
+      return {
+        type: "string",
+        enum: def?.values,
+        description: def?.description,
+      };
+    case "ZodOptional":
+      return def?.innerType ? zodToJsonSchema(def.innerType) : {};
+    case "ZodNullable": {
+      const inner = def?.innerType ? zodToJsonSchema(def.innerType) : {};
+      return { ...inner, nullable: true };
+    }
+    default:
+      return { description: def?.description };
+  }
+}
 
 export default function ScanScreen() {
   const router = useRouter();
@@ -134,20 +193,40 @@ ${profile.location ? `- Location: ${profile.location}` : ""}
 
 Provide diagnosis, severity, treatment plan, and prevention tips.`;
 
-        const analysis = await generateObject({
-          messages: [
-            {
-              role: "user",
-              content: [
-                { type: "text", text: systemPrompt },
-                { type: "image", image: base64Image },
-              ],
-            },
-          ],
-          schema: LawnAnalysisSchema,
+        console.log('[Scan] Calling toolkit API directly...');
+        console.log('[Scan] Image data length:', base64Image.length);
+        
+        const toolkitUrl = process.env.EXPO_PUBLIC_TOOLKIT_URL || 'https://toolkit.rork.com';
+        console.log('[Scan] Using toolkit URL:', toolkitUrl);
+        
+        const response = await fetch(`${toolkitUrl}/agent/object`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: [
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: systemPrompt },
+                  { type: "image", image: base64Image },
+                ],
+              },
+            ],
+            schema: zodToJsonSchema(LawnAnalysisSchema),
+          }),
         });
 
-        console.log('Analysis successful:', analysis.diagnosis);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[Scan] API error:', response.status, errorText);
+          throw new Error(`API error: ${response.status} - ${errorText}`);
+        }
+
+        const analysis = await response.json() as z.infer<typeof LawnAnalysisSchema>;
+
+        console.log('[Scan] Analysis successful:', analysis.diagnosis);
         setAnalysisResult(analysis);
         
         if (profile.scansRemaining > 0) {
@@ -158,12 +237,18 @@ Provide diagnosis, severity, treatment plan, and prevention tips.`;
             imageUrl: selectedImage || undefined,
           });
         }
-      } catch (analysisError) {
-        console.error('Analysis error:', analysisError);
-        Alert.alert(
-          'Analysis Failed',
-          analysisError instanceof Error ? analysisError.message : 'Failed to analyze image. Please try again.'
-        );
+      } catch (analysisError: unknown) {
+        console.error('[Scan] Analysis error:', analysisError);
+        let errorMessage = 'Failed to analyze image. Please try again.';
+        if (analysisError instanceof Error) {
+          errorMessage = analysisError.message;
+          console.error('[Scan] Error name:', analysisError.name);
+          console.error('[Scan] Error stack:', analysisError.stack);
+        } else if (typeof analysisError === 'object' && analysisError !== null) {
+          const errObj = analysisError as Record<string, unknown>;
+          errorMessage = String(errObj.message || errObj.error || JSON.stringify(analysisError));
+        }
+        Alert.alert('Analysis Failed', errorMessage);
       } finally {
         setIsAnalyzing(false);
       }
