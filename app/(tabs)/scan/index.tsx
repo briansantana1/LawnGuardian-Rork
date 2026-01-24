@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Camera, Upload, Zap, Search, Leaf, Shield, Check, X, ChevronDown, AlertCircle, Sparkles, Eye, AlertTriangle, Beaker, FlaskConical, Settings, Clock, CalendarPlus, BookOpen } from 'lucide-react-native';
+import { Camera, Upload, Zap, Search, Leaf, Shield, Check, X, ChevronDown, AlertCircle, Sparkles, Eye, AlertTriangle, Beaker, FlaskConical, Settings, Clock, CalendarPlus, BookOpen, ArrowLeft } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import Colors from '@/constants/colors';
@@ -410,6 +410,17 @@ Be very specific and detailed - this is a premium paid service. Avoid generic ad
 
         {analysisResult && (
           <View style={styles.resultsContainer}>
+            <View style={styles.diagnosisNavHeader}>
+              <Pressable
+                style={styles.backButton}
+                onPress={() => router.push('/(tabs)/(home)')}
+              >
+                <ArrowLeft size={24} color={Colors.light.text} />
+              </Pressable>
+              <Text style={styles.diagnosisNavTitle}>Diagnosis</Text>
+              <View style={styles.backButtonPlaceholder} />
+            </View>
+
             <View style={styles.diagnosisHeaderCard}>
               <View style={styles.diagnosisTitleRow}>
                 <View style={styles.diagnosisTitleLeft}>
@@ -970,6 +981,26 @@ const styles = StyleSheet.create({
   },
   resultsContainer: {
     marginBottom: 20,
+  },
+  diagnosisNavHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    paddingVertical: 12,
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border,
+  },
+  backButton: {
+    padding: 4,
+  },
+  backButtonPlaceholder: {
+    width: 32,
+  },
+  diagnosisNavTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: Colors.light.text,
   },
 
   diagnosisHeaderCard: {
