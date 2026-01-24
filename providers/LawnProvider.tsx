@@ -165,11 +165,28 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
   const signOut = useCallback(async () => {
     console.log('Signing out...');
     try {
-      await AsyncStorage.multiRemove([TASKS_KEY, PROFILE_KEY, SAVED_PLANS_KEY]);
-      setTasks(mockTasks);
-      setProfile(mockUserProfile);
-      setSavedPlans(mockSavedPlans);
-      setAiInsights(mockAIInsights);
+      await AsyncStorage.multiRemove([TASKS_KEY, PROFILE_KEY, SAVED_PLANS_KEY, IS_SIGNED_IN_KEY]);
+      
+      const freshProfile: UserProfile = {
+        id: 'guest',
+        name: 'Guest User',
+        email: 'Not signed in',
+        location: 'Unknown',
+        grassType: 'bermuda',
+        memberSince: new Date().toISOString().split('T')[0],
+      };
+      
+      setTasks([]);
+      setProfile(freshProfile);
+      setSavedPlans([]);
+      setAiInsights([]);
+      setIsSignedIn(false);
+      
+      await AsyncStorage.setItem(IS_SIGNED_IN_KEY, 'false');
+      await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(freshProfile));
+      await AsyncStorage.setItem(TASKS_KEY, JSON.stringify([]));
+      await AsyncStorage.setItem(SAVED_PLANS_KEY, JSON.stringify([]));
+      
       queryClient.clear();
       console.log('Sign out successful - data cleared and reset');
     } catch (error) {
@@ -255,6 +272,7 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
     refreshAiInsights,
     isRefreshingInsights,
     signOut,
+    isSignedIn,
     isLoading: tasksQuery.isLoading || profileQuery.isLoading,
   };
 });
