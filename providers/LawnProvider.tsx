@@ -8,6 +8,7 @@ import { mockTasks, mockLawnHealth, mockWeather, mockUserProfile, mockSoilTemper
 const TASKS_KEY = 'lawn_tasks';
 const PROFILE_KEY = 'lawn_profile';
 const SAVED_PLANS_KEY = 'saved_plans';
+const IS_SIGNED_IN_KEY = 'is_signed_in';
 
 export const [LawnProvider, useLawn] = createContextHook(() => {
   const queryClient = useQueryClient();
@@ -16,6 +17,7 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
   const [savedPlans, setSavedPlans] = useState<SavedPlan[]>([]);
   const [aiInsights, setAiInsights] = useState<AIInsight[]>(mockAIInsights);
   const [isRefreshingInsights, setIsRefreshingInsights] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(true);
 
   const tasksQuery = useQuery({
     queryKey: ['tasks'],
@@ -160,6 +162,21 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
   const soilTemperatures: SoilTemperature[] = mockSoilTemperatures;
   const tips = generalTips;
 
+  const signOut = useCallback(async () => {
+    console.log('Signing out...');
+    try {
+      await AsyncStorage.multiRemove([TASKS_KEY, PROFILE_KEY, SAVED_PLANS_KEY]);
+      setTasks(mockTasks);
+      setProfile(mockUserProfile);
+      setSavedPlans(mockSavedPlans);
+      setAiInsights(mockAIInsights);
+      queryClient.clear();
+      console.log('Sign out successful - data cleared and reset');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  }, [queryClient]);
+
   const refreshAiInsights = useCallback(async () => {
     setIsRefreshingInsights(true);
     console.log('Refreshing AI insights...');
@@ -237,6 +254,7 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
     deleteSavedPlan,
     refreshAiInsights,
     isRefreshingInsights,
+    signOut,
     isLoading: tasksQuery.isLoading || profileQuery.isLoading,
   };
 });
