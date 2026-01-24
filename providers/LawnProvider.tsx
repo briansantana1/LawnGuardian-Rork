@@ -14,6 +14,8 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [profile, setProfile] = useState<UserProfile>(mockUserProfile);
   const [savedPlans, setSavedPlans] = useState<SavedPlan[]>([]);
+  const [aiInsights, setAiInsights] = useState<AIInsight[]>(mockAIInsights);
+  const [isRefreshingInsights, setIsRefreshingInsights] = useState(false);
 
   const tasksQuery = useQuery({
     queryKey: ['tasks'],
@@ -156,8 +158,48 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
   const lawnHealth: LawnHealth = mockLawnHealth;
   const weather: WeatherData = mockWeather;
   const soilTemperatures: SoilTemperature[] = mockSoilTemperatures;
-  const aiInsights: AIInsight[] = mockAIInsights;
   const tips = generalTips;
+
+  const refreshAiInsights = useCallback(async () => {
+    setIsRefreshingInsights(true);
+    console.log('Refreshing AI insights...');
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Generate refreshed insights with slight variations
+    const refreshedInsights: AIInsight[] = [
+      {
+        id: '1',
+        title: 'Watering Recommendation',
+        description: `Based on current ${weather.temperature}°F temperature and ${weather.humidity}% humidity, water deeply 2-3 times per week in early morning.`,
+        priority: weather.humidity < 40 ? 'high' : 'medium',
+        icon: 'droplet',
+      },
+      {
+        id: '2',
+        title: 'Mowing Schedule',
+        description: weather.temperature > 60 
+          ? 'Grass is actively growing. Maintain 3-3.5 inch height and mow every 5-7 days.'
+          : 'Cool temperatures slowing growth. Reduce mowing frequency to every 10-14 days.',
+        priority: weather.temperature > 75 ? 'high' : 'medium',
+        icon: 'scissors',
+      },
+      {
+        id: '3',
+        title: 'Disease Watch',
+        description: weather.humidity > 70 
+          ? 'High humidity increases fungal disease risk. Monitor for brown patches and dollar spots.'
+          : 'Current conditions are favorable. Continue regular lawn care routine.',
+        priority: weather.humidity > 70 ? 'high' : 'low',
+        icon: 'alert-triangle',
+      },
+    ];
+    
+    setAiInsights(refreshedInsights);
+    setIsRefreshingInsights(false);
+    console.log('AI insights refreshed successfully');
+  }, [weather]);
 
   const upcomingTasks = useMemo(() => {
     return tasks
@@ -193,6 +235,8 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
     updateProfile,
     addSavedPlan,
     deleteSavedPlan,
+    refreshAiInsights,
+    isRefreshingInsights,
     isLoading: tasksQuery.isLoading || profileQuery.isLoading,
   };
 });

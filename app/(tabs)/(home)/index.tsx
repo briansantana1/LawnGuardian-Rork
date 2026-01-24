@@ -12,7 +12,7 @@ const GRASS_IMAGE = 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachm
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { profile, weather, soilTemperatures, aiInsights, tips } = useLawn();
+  const { profile, weather, soilTemperatures, aiInsights, tips, refreshAiInsights, isRefreshingInsights } = useLawn();
 
   const getSoilTempColor = (temp: number) => {
     if (temp >= 70) return '#F87171';
@@ -220,9 +220,19 @@ export default function HomeScreen() {
               </View>
               <Text style={styles.aiPoweredLabel}>AI-powered analysis</Text>
             </View>
-            <Pressable style={styles.refreshButton}>
-              <RefreshCw size={16} color={Colors.light.primary} />
-              <Text style={styles.refreshText}>Refresh</Text>
+            <Pressable 
+              style={({ pressed }) => [styles.refreshButton, pressed && styles.buttonPressed]}
+              onPress={refreshAiInsights}
+              disabled={isRefreshingInsights}
+            >
+              <RefreshCw 
+                size={16} 
+                color={isRefreshingInsights ? Colors.light.textMuted : Colors.light.primary} 
+                style={isRefreshingInsights ? { opacity: 0.6 } : undefined}
+              />
+              <Text style={[styles.refreshText, isRefreshingInsights && { color: Colors.light.textMuted }]}>
+                {isRefreshingInsights ? 'Refreshing...' : 'Refresh'}
+              </Text>
             </Pressable>
           </View>
 
