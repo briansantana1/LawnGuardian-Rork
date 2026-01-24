@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { User, MapPin, Leaf, Key, ChevronRight, CreditCard, XCircle, RefreshCw, Mail, FileText, LogOut, Trash2, X, ChevronDown } from 'lucide-react-native';
+import { User, MapPin, Leaf, Key, ChevronRight, CreditCard, XCircle, RefreshCw, Mail, FileText, LogOut, LogIn, Trash2, X, ChevronDown } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { useLawn } from '@/providers/LawnProvider';
 import { GrassType, GRASS_TYPE_LABELS } from '@/types/lawn';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { profile, updateProfile, signOut } = useLawn();
+  const { profile, updateProfile, signOut, signIn, isSignedIn } = useLawn();
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState(profile.name);
   const [editEmail, setEditEmail] = useState(profile.email);
@@ -184,21 +184,36 @@ export default function ProfileScreen() {
             </Pressable>
           </View>
 
-          <Pressable 
-            style={({ pressed }) => [styles.signOutButton, pressed && styles.buttonPressed]}
-            onPress={handleSignOut}
-          >
-            <LogOut size={18} color={Colors.light.primary} />
-            <Text style={styles.signOutButtonText}>Sign Out</Text>
-          </Pressable>
+          {isSignedIn ? (
+            <>
+              <Pressable 
+                style={({ pressed }) => [styles.signOutButton, pressed && styles.buttonPressed]}
+                onPress={handleSignOut}
+              >
+                <LogOut size={18} color={Colors.light.primary} />
+                <Text style={styles.signOutButtonText}>Sign Out</Text>
+              </Pressable>
 
-          <Pressable 
-            style={({ pressed }) => [styles.deleteButton, pressed && styles.buttonPressed]}
-            onPress={handleDeleteAccount}
-          >
-            <Trash2 size={18} color={Colors.light.error} />
-            <Text style={styles.deleteButtonText}>Delete Account</Text>
-          </Pressable>
+              <Pressable 
+                style={({ pressed }) => [styles.deleteButton, pressed && styles.buttonPressed]}
+                onPress={handleDeleteAccount}
+              >
+                <Trash2 size={18} color={Colors.light.error} />
+                <Text style={styles.deleteButtonText}>Delete Account</Text>
+              </Pressable>
+            </>
+          ) : (
+            <Pressable 
+              style={({ pressed }) => [styles.signInButton, pressed && styles.buttonPressed]}
+              onPress={() => {
+                signIn();
+                Alert.alert('Signed In', 'You have been signed in successfully.');
+              }}
+            >
+              <LogIn size={18} color="#FFF" />
+              <Text style={styles.signInButtonText}>Sign In</Text>
+            </Pressable>
+          )}
 
           <View style={styles.bottomPadding} />
         </View>
@@ -482,6 +497,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600' as const,
     color: Colors.light.primary,
+  },
+  signInButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.light.primary,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  signInButtonText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: '#FFF',
   },
   deleteButton: {
     flexDirection: 'row',

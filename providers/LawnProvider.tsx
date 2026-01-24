@@ -19,6 +19,20 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
   const [isRefreshingInsights, setIsRefreshingInsights] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(true);
 
+  const signedInQuery = useQuery({
+    queryKey: ['isSignedIn'],
+    queryFn: async () => {
+      const stored = await AsyncStorage.getItem(IS_SIGNED_IN_KEY);
+      return stored !== 'false';
+    },
+  });
+
+  useEffect(() => {
+    if (signedInQuery.data !== undefined) {
+      setIsSignedIn(signedInQuery.data);
+    }
+  }, [signedInQuery.data]);
+
   const tasksQuery = useQuery({
     queryKey: ['tasks'],
     queryFn: async () => {
@@ -194,6 +208,29 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
     }
   }, [queryClient]);
 
+  const signIn = useCallback(async () => {
+    console.log('Signing in...');
+    try {
+      setIsSignedIn(true);
+      await AsyncStorage.setItem(IS_SIGNED_IN_KEY, 'true');
+      
+      // Restore default profile
+      setProfile(mockUserProfile);
+      setTasks(mockTasks);
+      setSavedPlans(mockSavedPlans);
+      setAiInsights(mockAIInsights);
+      
+      await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(mockUserProfile));
+      await AsyncStorage.setItem(TASKS_KEY, JSON.stringify(mockTasks));
+      await AsyncStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(mockSavedPlans));
+      
+      queryClient.invalidateQueries();
+      console.log('Sign in successful');
+    } catch (error) {
+      console.error('Error signing in:', error);
+    }
+  }, [queryClient]);
+
   const refreshAiInsights = useCallback(async () => {
     setIsRefreshingInsights(true);
     console.log('Refreshing AI insights...');
@@ -272,6 +309,7 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
     refreshAiInsights,
     isRefreshingInsights,
     signOut,
+    signIn,
     isSignedIn,
     isLoading: tasksQuery.isLoading || profileQuery.isLoading,
   };
