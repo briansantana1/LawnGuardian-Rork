@@ -90,6 +90,13 @@ function RootLayoutNav() {
           title: "Terms of Use",
         }} 
       />
+      <Stack.Screen 
+        name="ai-insights" 
+        options={{ 
+          presentation: "card",
+          headerShown: false,
+        }} 
+      />
     </Stack>
   );
 }

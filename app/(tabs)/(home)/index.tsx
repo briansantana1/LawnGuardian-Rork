@@ -131,7 +131,10 @@ export default function HomeScreen() {
           </View>
         ))}
 
-        <Pressable style={styles.aiInsightsLink}>
+        <Pressable 
+          style={({ pressed }) => [styles.aiInsightsLink, pressed && styles.buttonPressed]}
+          onPress={() => router.push('/ai-insights')}
+        >
           <Zap size={16} color={Colors.light.primary} />
           <Text style={styles.aiInsightsLinkText}>Get AI Insights</Text>
         </Pressable>
