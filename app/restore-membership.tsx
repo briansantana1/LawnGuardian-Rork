@@ -1,18 +1,38 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { RefreshCw, Info } from 'lucide-react-native';
+import { RefreshCw, Check } from 'lucide-react-native';
 import Colors from '@/constants/colors';
+import { usePurchases } from '@/providers/PurchasesProvider';
 
 export default function RestoreMembershipScreen() {
   const router = useRouter();
+  const { restore, isRestoring, isPro } = usePurchases();
 
-  const handleRestorePurchases = () => {
-    Alert.alert(
-      'Restore Complete',
-      'No active subscriptions were found linked to your account.',
-      [{ text: 'OK' }]
-    );
+  const handleRestorePurchases = async () => {
+    console.log('Starting restore purchases...');
+    const result = await restore();
+    
+    if (result.success) {
+      if (result.hasActiveSubscription) {
+        Alert.alert(
+          'Restore Successful!',
+          'Your Pro subscription has been restored. Enjoy all Pro features!',
+          [{ text: 'OK', onPress: () => router.back() }]
+        );
+      } else {
+        Alert.alert(
+          'No Active Subscription',
+          'No active subscriptions were found linked to your account. Would you like to view our plans?',
+          [
+            { text: 'Not Now', style: 'cancel' },
+            { text: 'View Plans', onPress: () => router.push('/plans') }
+          ]
+        );
+      }
+    } else {
+      Alert.alert('Restore Failed', result.error || 'Unable to restore purchases. Please try again.');
+    }
   };
 
   return (
@@ -27,12 +47,12 @@ export default function RestoreMembershipScreen() {
       <View style={styles.content}>
         <Text style={styles.title}>Restore Membership</Text>
 
-        <View style={styles.testModeBanner}>
-          <Info size={16} color={Colors.light.textMuted} />
-          <Text style={styles.testModeText}>
-            Test Mode: Restore is simulated. Real restore only works on native builds.
-          </Text>
-        </View>
+        {isPro && (
+          <View style={styles.activeSubBanner}>
+            <Check size={20} color="#FFF" />
+            <Text style={styles.activeSubText}>You have an active Pro subscription!</Text>
+          </View>
+        )}
 
         <View style={styles.welcomeCard}>
           <View style={styles.welcomeIcon}>
@@ -41,14 +61,25 @@ export default function RestoreMembershipScreen() {
           <Text style={styles.welcomeTitle}>Welcome Back!</Text>
           <Text style={styles.welcomeSubtitle}>Restore your previous subscription</Text>
           <Text style={styles.welcomeDesc}>
-            If you've previously purchased a subscription on this device or with your Apple/Google account, you can restore it here.
+            If you have previously purchased a subscription on this device or with your Apple/Google account, you can restore it here.
           </Text>
           <Pressable 
-            style={({ pressed }) => [styles.restoreButton, pressed && styles.buttonPressed]}
+            style={({ pressed }) => [
+              styles.restoreButton, 
+              pressed && styles.buttonPressed,
+              isRestoring && styles.buttonDisabled
+            ]}
             onPress={handleRestorePurchases}
+            disabled={isRestoring}
           >
-            <RefreshCw size={18} color="#FFF" />
-            <Text style={styles.restoreButtonText}>Restore Purchases</Text>
+            {isRestoring ? (
+              <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+              <>
+                <RefreshCw size={18} color="#FFF" />
+                <Text style={styles.restoreButtonText}>Restore Purchases</Text>
+              </>
+            )}
           </Pressable>
           <Text style={styles.restoreNote}>
             This will check for any active subscriptions linked to your Apple or Google account
@@ -56,7 +87,7 @@ export default function RestoreMembershipScreen() {
         </View>
 
         <View style={styles.noSubSection}>
-          <Text style={styles.noSubTitle}>Don't have a subscription?</Text>
+          <Text style={styles.noSubTitle}>No subscription yet?</Text>
           <Text style={styles.noSubDesc}>
             View our available plans and get unlimited AI-powered lawn diagnostics.
           </Text>
@@ -94,19 +125,19 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
     marginBottom: 16,
   },
-  testModeBanner: {
+  activeSubBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: Colors.light.primary,
+    borderRadius: 12,
+    padding: 16,
     gap: 10,
     marginBottom: 20,
   },
-  testModeText: {
-    fontSize: 12,
-    color: Colors.light.textMuted,
-    flex: 1,
+  activeSubText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: '#FFF',
   },
   welcomeCard: {
     backgroundColor: '#FFF',
@@ -150,9 +181,14 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 25,
+    minWidth: 200,
+    justifyContent: 'center',
   },
   buttonPressed: {
     opacity: 0.8,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   restoreButtonText: {
     fontSize: 15,

@@ -1,13 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Eye, Leaf, FileText, Star, Check, X, Lock, Key } from 'lucide-react-native';
 import Colors from '@/constants/colors';
-import { useLawn } from '@/providers/LawnProvider';
+import { usePurchases } from '@/providers/PurchasesProvider';
 
 export default function PlansScreen() {
   const router = useRouter();
-  const { profile } = useLawn();
+  const { 
+    isPro, 
+    weeklyPackage, 
+    annualPackage, 
+    isLoadingOfferings, 
+    isPurchasing,
+    purchase 
+  } = usePurchases();
 
   const freeFeatures = [
     { text: '1 photo scan per month', available: true },
@@ -38,6 +45,28 @@ export default function PlansScreen() {
     'Treatment recommendations',
   ];
 
+  const handlePurchase = async (type: 'weekly' | 'annual') => {
+    const pkg = type === 'weekly' ? weeklyPackage : annualPackage;
+    if (!pkg) {
+      Alert.alert('Error', 'Package not available. Please try again later.');
+      return;
+    }
+
+    console.log(`Starting ${type} purchase...`);
+    const result = await purchase(pkg);
+    
+    if (result.success) {
+      Alert.alert('Success!', 'Your subscription is now active. Enjoy Pro features!', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
+    } else if (result.error && result.error !== 'cancelled') {
+      Alert.alert('Purchase Failed', result.error);
+    }
+  };
+
+  const weeklyPrice = weeklyPackage?.product?.priceString || '$5.99';
+  const annualPrice = annualPackage?.product?.priceString || '$79.99';
+
   return (
     <View style={styles.container}>
       <Stack.Screen 
@@ -51,6 +80,13 @@ export default function PlansScreen() {
         <View style={styles.content}>
           <Text style={styles.title}>Choose Your Plan</Text>
           <Text style={styles.subtitle}>Unlock the full power of AI lawn diagnostics</Text>
+
+          {isPro && (
+            <View style={styles.activeSubBanner}>
+              <Check size={20} color="#FFF" />
+              <Text style={styles.activeSubText}>You have an active Pro subscription!</Text>
+            </View>
+          )}
 
           <View style={styles.technologySection}>
             <Text style={styles.technologyLabel}>POWERED BY INDUSTRY-LEADING TECHNOLOGY</Text>
@@ -97,8 +133,8 @@ export default function PlansScreen() {
                 </Text>
               </View>
             ))}
-            <Pressable style={styles.currentPlanButton}>
-              <Text style={styles.currentPlanButtonText}>Current Plan</Text>
+            <Pressable style={[styles.currentPlanButton, isPro && styles.inactivePlanButton]}>
+              <Text style={styles.currentPlanButtonText}>{isPro ? 'Free Plan' : 'Current Plan'}</Text>
             </Pressable>
           </View>
 
@@ -111,8 +147,14 @@ export default function PlansScreen() {
               <Text style={styles.planLabel}>Pro Weekly</Text>
             </View>
             <View style={styles.priceRow}>
-              <Text style={styles.price}>$5.99</Text>
-              <Text style={styles.pricePeriod}>/week</Text>
+              {isLoadingOfferings ? (
+                <ActivityIndicator size="small" color={Colors.light.text} />
+              ) : (
+                <>
+                  <Text style={styles.price}>{weeklyPrice}</Text>
+                  <Text style={styles.pricePeriod}>/week</Text>
+                </>
+              )}
             </View>
             {proFeatures.map((feature, index) => (
               <View key={index} style={styles.featureRow}>
@@ -120,8 +162,18 @@ export default function PlansScreen() {
                 <Text style={styles.featureText}>{feature}</Text>
               </View>
             ))}
-            <Pressable style={styles.startProButton}>
-              <Text style={styles.startProButtonText}>Start Pro Weekly</Text>
+            <Pressable 
+              style={[styles.startProButton, (isPurchasing || isPro) && styles.buttonDisabled]}
+              onPress={() => handlePurchase('weekly')}
+              disabled={isPurchasing || isPro}
+            >
+              {isPurchasing ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <Text style={styles.startProButtonText}>
+                  {isPro ? 'Already Subscribed' : 'Start Pro Weekly'}
+                </Text>
+              )}
             </Pressable>
             <Text style={styles.cancelText}>Cancel anytime. Keep access until period ends.</Text>
           </View>
@@ -135,20 +187,35 @@ export default function PlansScreen() {
               <Text style={styles.planLabel}>Pro Annual</Text>
             </View>
             <View style={styles.priceRow}>
-              <Text style={styles.price}>$79.99</Text>
-              <Text style={styles.pricePeriod}>/year</Text>
+              {isLoadingOfferings ? (
+                <ActivityIndicator size="small" color={Colors.light.text} />
+              ) : (
+                <>
+                  <Text style={styles.price}>{annualPrice}</Text>
+                  <Text style={styles.pricePeriod}>/year</Text>
+                </>
+              )}
             </View>
-            <Text style={styles.monthlyBreakdown}>$6.67/month, billed annually</Text>
+            <Text style={styles.monthlyBreakdown}>Billed annually</Text>
             {annualFeatures.map((feature, index) => (
               <View key={index} style={styles.featureRow}>
                 <Check size={16} color={Colors.light.primary} />
                 <Text style={styles.featureText}>{feature}</Text>
               </View>
             ))}
-            <Pressable style={styles.startAnnualButton}>
-              <Text style={styles.startAnnualButtonText}>Start Pro Annual</Text>
+            <Pressable 
+              style={[styles.startAnnualButton, (isPurchasing || isPro) && styles.buttonDisabled]}
+              onPress={() => handlePurchase('annual')}
+              disabled={isPurchasing || isPro}
+            >
+              {isPurchasing ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <Text style={styles.startAnnualButtonText}>
+                  {isPro ? 'Already Subscribed' : 'Start Pro Annual'}
+                </Text>
+              )}
             </Pressable>
-            <Text style={styles.billingNote}>12 payments of $6.67/month billed as one payment of $79.99/year.</Text>
             <Text style={styles.cancelText}>Cancel anytime. Keep access until period ends.</Text>
           </View>
 
@@ -189,6 +256,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.light.textMuted,
     marginBottom: 24,
+  },
+  activeSubBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.light.primary,
+    borderRadius: 12,
+    padding: 16,
+    gap: 10,
+    marginBottom: 20,
+  },
+  activeSubText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: '#FFF',
   },
   technologySection: {
     backgroundColor: '#FFF',
@@ -335,6 +416,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 16,
   },
+  inactivePlanButton: {
+    backgroundColor: '#E5E7EB',
+  },
   currentPlanButtonText: {
     fontSize: 14,
     fontWeight: '600' as const,
@@ -364,11 +448,8 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: '#FFF',
   },
-  billingNote: {
-    fontSize: 11,
-    color: Colors.light.textMuted,
-    textAlign: 'center',
-    marginTop: 12,
+  buttonDisabled: {
+    opacity: 0.6,
   },
   cancelText: {
     fontSize: 11,

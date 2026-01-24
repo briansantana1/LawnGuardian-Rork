@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { LawnProvider } from "@/providers/LawnProvider";
+import { PurchasesProvider } from "@/providers/PurchasesProvider";
 import Colors from "@/constants/colors";
 import { trpc, trpcClient } from "@/lib/trpc";
 
@@ -117,9 +118,11 @@ export default function RootLayout() {
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <LawnProvider>
-            <RootLayoutNav />
-          </LawnProvider>
+          <PurchasesProvider>
+            <LawnProvider>
+              <RootLayoutNav />
+            </LawnProvider>
+          </PurchasesProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>
     </trpc.Provider>

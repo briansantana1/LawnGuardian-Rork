@@ -65,6 +65,8 @@ export interface AIInsight {
   icon: string;
 }
 
+export type SubscriptionStatus = 'free' | 'pro_weekly' | 'pro_annual';
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -75,7 +77,7 @@ export interface UserProfile {
   lawnSizeUnit: 'sqft' | 'sqm';
   notificationsEnabled: boolean;
   reminderTime: string;
-  subscriptionStatus: 'free' | 'pro_weekly' | 'pro_annual';
+  subscriptionStatus: SubscriptionStatus;
   scansRemaining: number;
 }
 

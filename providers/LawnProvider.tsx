@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
 import * as Crypto from 'expo-crypto';
-import { Task, LawnHealth, WeatherData, UserProfile, SoilTemperature, AIInsight, SavedPlan } from '@/types/lawn';
+import { Task, LawnHealth, WeatherData, UserProfile, SoilTemperature, AIInsight, SavedPlan, SubscriptionStatus } from '@/types/lawn';
 import { mockTasks, mockLawnHealth, mockWeather, mockUserProfile, mockSoilTemperatures, mockAIInsights, mockSavedPlans, generalTips } from '@/mocks/lawnData';
 
 const TASKS_KEY = 'lawn_tasks';
@@ -206,7 +206,7 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
         lawnSizeUnit: 'sqft',
         notificationsEnabled: false,
         reminderTime: '09:00',
-        subscriptionStatus: 'free',
+        subscriptionStatus: 'free' as SubscriptionStatus,
         scansRemaining: 0,
       };
       
