@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Camera, Upload, Zap, Search, Leaf, Shield, Check, X, ChevronDown, AlertCircle, Sparkles } from 'lucide-react-native';
@@ -78,6 +78,7 @@ export default function ScanScreen() {
 
   const grassTypes = Object.entries(GRASS_TYPE_LABELS) as [GrassType, string][];
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const hasAutoAnalyzed = useRef(false);
 
   const [analysisResult, setAnalysisResult] = useState<{
     diagnosis: string;
@@ -118,13 +119,14 @@ export default function ScanScreen() {
     });
 
     if (!result.canceled && result.assets[0]) {
+      hasAutoAnalyzed.current = false;
       setSelectedImage(result.assets[0].uri);
       setAnalysisResult(null);
       console.log('Image selected:', result.assets[0].uri);
     }
   };
 
-  const analyzeImage = async () => {
+  const analyzeImage = useCallback(async () => {
     if (!selectedImage) {
       Alert.alert('No Image', 'Please select or take a photo first.');
       return;
@@ -256,7 +258,7 @@ Provide diagnosis, severity, treatment plan, and prevention tips.`;
       console.error('Error preparing image:', error);
       Alert.alert('Error', 'Failed to process image. Please try again.');
     }
-  };
+  }, [selectedImage, selectedGrassType, profile, router, addSavedPlan]);
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -272,11 +274,19 @@ Provide diagnosis, severity, treatment plan, and prevention tips.`;
     });
 
     if (!result.canceled && result.assets[0]) {
+      hasAutoAnalyzed.current = false;
       setSelectedImage(result.assets[0].uri);
       setAnalysisResult(null);
       console.log('Photo taken:', result.assets[0].uri);
     }
   };
+
+  useEffect(() => {
+    if (selectedImage && selectedGrassType && !analysisResult && !isAnalyzing && !hasAutoAnalyzed.current) {
+      hasAutoAnalyzed.current = true;
+      analyzeImage();
+    }
+  }, [selectedImage, selectedGrassType, analysisResult, isAnalyzing, analyzeImage]);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
