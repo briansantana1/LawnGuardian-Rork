@@ -179,29 +179,39 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
   const signOut = useCallback(async () => {
     console.log('Signing out...');
     try {
-      await AsyncStorage.multiRemove([TASKS_KEY, PROFILE_KEY, SAVED_PLANS_KEY, IS_SIGNED_IN_KEY]);
-      
       const freshProfile: UserProfile = {
         id: 'guest',
         name: 'Guest User',
         email: 'Not signed in',
         location: 'Unknown',
         grassType: 'bermuda',
-        memberSince: new Date().toISOString().split('T')[0],
+        lawnSize: 0,
+        lawnSizeUnit: 'sqft',
+        notificationsEnabled: false,
+        reminderTime: '09:00',
+        subscriptionStatus: 'free',
+        scansRemaining: 0,
       };
       
+      // Update local state first
       setTasks([]);
       setProfile(freshProfile);
       setSavedPlans([]);
       setAiInsights([]);
       setIsSignedIn(false);
       
+      // Update query cache directly instead of clearing
+      queryClient.setQueryData(['tasks'], []);
+      queryClient.setQueryData(['profile'], freshProfile);
+      queryClient.setQueryData(['savedPlans'], []);
+      queryClient.setQueryData(['isSignedIn'], false);
+      
+      // Persist to storage
       await AsyncStorage.setItem(IS_SIGNED_IN_KEY, 'false');
       await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(freshProfile));
       await AsyncStorage.setItem(TASKS_KEY, JSON.stringify([]));
       await AsyncStorage.setItem(SAVED_PLANS_KEY, JSON.stringify([]));
       
-      queryClient.clear();
       console.log('Sign out successful - data cleared and reset');
     } catch (error) {
       console.error('Error signing out:', error);
@@ -211,20 +221,25 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
   const signIn = useCallback(async () => {
     console.log('Signing in...');
     try {
+      // Update local state
       setIsSignedIn(true);
-      await AsyncStorage.setItem(IS_SIGNED_IN_KEY, 'true');
-      
-      // Restore default profile
       setProfile(mockUserProfile);
       setTasks(mockTasks);
       setSavedPlans(mockSavedPlans);
       setAiInsights(mockAIInsights);
       
+      // Update query cache directly
+      queryClient.setQueryData(['isSignedIn'], true);
+      queryClient.setQueryData(['profile'], mockUserProfile);
+      queryClient.setQueryData(['tasks'], mockTasks);
+      queryClient.setQueryData(['savedPlans'], mockSavedPlans);
+      
+      // Persist to storage
+      await AsyncStorage.setItem(IS_SIGNED_IN_KEY, 'true');
       await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(mockUserProfile));
       await AsyncStorage.setItem(TASKS_KEY, JSON.stringify(mockTasks));
       await AsyncStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(mockSavedPlans));
       
-      queryClient.invalidateQueries();
       console.log('Sign in successful');
     } catch (error) {
       console.error('Error signing in:', error);
