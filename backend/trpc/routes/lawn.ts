@@ -1,6 +1,6 @@
 import * as z from "zod";
 import { createTRPCRouter, publicProcedure } from "../create-context";
-import { generateObject } from "@rork-ai/toolkit-sdk";
+import { generateObject } from "../../utils/toolkit";
 
 const LawnAnalysisSchema = z.object({
   diagnosis: z.string().describe("Primary diagnosis of the lawn problem"),

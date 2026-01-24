@@ -7,7 +7,8 @@ import * as FileSystem from 'expo-file-system';
 import Colors from '@/constants/colors';
 import { useLawn } from '@/providers/LawnProvider';
 import { GrassType, GRASS_TYPE_LABELS } from '@/types/lawn';
-import { trpc } from '@/lib/trpc';
+import { generateObject } from '@rork-ai/toolkit-sdk';
+import * as z from 'zod';
 
 export default function ScanScreen() {
   const router = useRouter();
@@ -17,30 +18,7 @@ export default function ScanScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const grassTypes = Object.entries(GRASS_TYPE_LABELS) as [GrassType, string][];
-
-  const analyzeMutation = trpc.lawn.analyzeLawn.useMutation({
-    onSuccess: (data: { success: boolean; analysis: typeof analysisResult extends null ? never : NonNullable<typeof analysisResult>; analyzedAt: string }) => {
-      console.log('Analysis successful:', data.analysis.diagnosis);
-      setAnalysisResult(data.analysis);
-      if (profile.scansRemaining > 0) {
-        addSavedPlan({
-          title: data.analysis.diagnosis,
-          diagnosis: data.analysis.issues.map((i: { description: string }) => i.description).join('. '),
-          treatment: data.analysis.treatment.immediate.join('. '),
-          imageUrl: selectedImage || undefined,
-        });
-      }
-    },
-    onError: (error) => {
-      console.error('Analysis error:', error);
-      Alert.alert(
-        'Analysis Failed', 
-        error instanceof Error ? error.message : 'Failed to analyze image. Please try again.'
-      );
-    },
-    retry: 2,
-    retryDelay: 2000,
-  });
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const [analysisResult, setAnalysisResult] = useState<{
     diagnosis: string;
@@ -122,11 +100,73 @@ export default function ScanScreen() {
       }
 
       console.log('Starting lawn analysis...');
-      analyzeMutation.mutate({
-        imageBase64: base64Image,
-        grassType: GRASS_TYPE_LABELS[selectedGrassType],
-        location: profile.location || undefined,
-      });
+      setIsAnalyzing(true);
+      
+      try {
+        const LawnAnalysisSchema = z.object({
+          diagnosis: z.string().describe("Primary diagnosis of the lawn problem"),
+          severity: z.enum(["mild", "moderate", "severe"]).describe("Severity level"),
+          confidence: z.number().min(0).max(100).describe("Confidence percentage"),
+          issues: z.array(z.object({
+            name: z.string(),
+            description: z.string(),
+            type: z.string(),
+          })).describe("List of identified issues"),
+          healthScore: z.number().min(0).max(100).describe("Overall lawn health score"),
+          treatment: z.object({
+            immediate: z.array(z.string()),
+            shortTerm: z.array(z.string()),
+            longTerm: z.array(z.string()),
+            products: z.array(z.object({
+              name: z.string(),
+              purpose: z.string(),
+              applicationTiming: z.string(),
+            })),
+          }),
+          preventionTips: z.array(z.string()),
+        });
+
+        const systemPrompt = `You are an expert lawn care specialist. Analyze the lawn image and identify issues.
+
+Context:
+- Grass Type: ${GRASS_TYPE_LABELS[selectedGrassType]}
+${profile.location ? `- Location: ${profile.location}` : ""}
+
+Provide diagnosis, severity, treatment plan, and prevention tips.`;
+
+        const analysis = await generateObject({
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: systemPrompt },
+                { type: "image", image: base64Image },
+              ],
+            },
+          ],
+          schema: LawnAnalysisSchema,
+        });
+
+        console.log('Analysis successful:', analysis.diagnosis);
+        setAnalysisResult(analysis);
+        
+        if (profile.scansRemaining > 0) {
+          addSavedPlan({
+            title: analysis.diagnosis,
+            diagnosis: analysis.issues.map((i: { description: string }) => i.description).join('. '),
+            treatment: analysis.treatment.immediate.join('. '),
+            imageUrl: selectedImage || undefined,
+          });
+        }
+      } catch (analysisError) {
+        console.error('Analysis error:', analysisError);
+        Alert.alert(
+          'Analysis Failed',
+          analysisError instanceof Error ? analysisError.message : 'Failed to analyze image. Please try again.'
+        );
+      } finally {
+        setIsAnalyzing(false);
+      }
     } catch (error) {
       console.error('Error preparing image:', error);
       Alert.alert('Error', 'Failed to process image. Please try again.');
@@ -319,12 +359,12 @@ export default function ScanScreen() {
             style={({ pressed }) => [
               styles.analyzeButton,
               pressed && styles.buttonPressed,
-              analyzeMutation.isPending && styles.analyzeButtonDisabled,
+              isAnalyzing && styles.analyzeButtonDisabled,
             ]}
             onPress={analyzeImage}
-            disabled={analyzeMutation.isPending}
+            disabled={isAnalyzing}
           >
-            {analyzeMutation.isPending ? (
+            {isAnalyzing ? (
               <>
                 <ActivityIndicator size="small" color="#FFF" />
                 <Text style={styles.analyzeButtonText}>Analyzing...</Text>
