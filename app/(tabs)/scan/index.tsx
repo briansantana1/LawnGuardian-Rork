@@ -188,12 +188,12 @@ export default function ScanScreen() {
             <Search size={12} color="#D97706" />
             <Text style={[styles.featureBadgeText, styles.featureBadgeTextOrange]}>Disease Detection</Text>
           </View>
+        </View>
+        <View style={styles.featureBadgesCentered}>
           <View style={[styles.featureBadge, styles.featureBadgeOutline]}>
             <Leaf size={12} color={Colors.light.primary} />
             <Text style={[styles.featureBadgeText, styles.featureBadgeTextOutline]}>Weed Detection</Text>
           </View>
-        </View>
-        <View style={styles.featureBadgesCentered}>
           <View style={[styles.featureBadge, styles.featureBadgeOutline]}>
             <Shield size={12} color={Colors.light.primary} />
             <Text style={[styles.featureBadgeText, styles.featureBadgeTextOutline]}>Expert Treatments</Text>
@@ -543,6 +543,7 @@ const styles = StyleSheet.create({
   featureBadgesCentered: {
     flexDirection: 'row',
     justifyContent: 'center',
+    gap: 8,
     marginBottom: 20,
   },
   featureBadge: {
