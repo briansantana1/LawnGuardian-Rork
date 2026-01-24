@@ -169,10 +169,15 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
     restore,
     refreshCustomerInfo,
     weeklyPackage: offeringsQuery.data?.current?.availablePackages.find(
-      p => p.identifier === '$rc_weekly' || p.packageType === PACKAGE_TYPE.WEEKLY
+      p => p.packageType === PACKAGE_TYPE.WEEKLY || 
+           p.identifier === '$rc_weekly' || 
+           p.identifier.toLowerCase().includes('week')
     ),
     annualPackage: offeringsQuery.data?.current?.availablePackages.find(
-      p => p.identifier === '$rc_annual' || p.packageType === PACKAGE_TYPE.ANNUAL
+      p => p.packageType === PACKAGE_TYPE.ANNUAL || 
+           p.identifier === '$rc_annual' || 
+           p.identifier.toLowerCase().includes('annual') ||
+           p.identifier.toLowerCase().includes('year')
     ),
     allPackages: offeringsQuery.data?.current?.availablePackages || [],
     hasOfferings: !!offeringsQuery.data?.current,

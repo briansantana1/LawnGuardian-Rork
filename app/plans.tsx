@@ -17,7 +17,19 @@ export default function PlansScreen() {
     allPackages,
     hasOfferings,
     offeringsError,
+    offerings,
   } = usePurchases();
+
+  console.log('Plans screen - offerings state:', {
+    hasOfferings,
+    currentOffering: offerings?.current?.identifier,
+    allOfferingsKeys: offerings ? Object.keys(offerings.all) : [],
+    packagesCount: allPackages.length,
+    packages: allPackages.map(p => ({ id: p.identifier, type: p.packageType, product: p.product?.identifier })),
+    weeklyFound: !!weeklyPackage,
+    annualFound: !!annualPackage,
+    error: offeringsError,
+  });
 
   const freeFeatures = [
     { text: '1 photo scan per month', available: true },
@@ -50,24 +62,33 @@ export default function PlansScreen() {
 
   const handlePurchase = async (type: 'weekly' | 'annual') => {
     const pkg = type === 'weekly' ? weeklyPackage : annualPackage;
-    if (!pkg) {
+    
+    // If package not found but we have packages, try to use first available
+    const fallbackPkg = !pkg && allPackages.length > 0 ? allPackages[0] : null;
+    const packageToUse = pkg || fallbackPkg;
+    
+    if (!packageToUse) {
       console.log('Package not found. hasOfferings:', hasOfferings, 'allPackages:', allPackages.map(p => p.identifier));
       
       let errorMsg = 'Package not available. ';
       if (!hasOfferings) {
-        errorMsg += 'No offerings configured in RevenueCat. Please check your RevenueCat dashboard.';
+        errorMsg += 'No offerings configured in RevenueCat. Please ensure:\n\n1. Products exist in App Store Connect\n2. Products are added to RevenueCat\n3. An offering is created and set as current\n4. Packages are attached to the offering';
       } else if (allPackages.length === 0) {
-        errorMsg += 'No packages found in the current offering.';
+        errorMsg += 'No packages found in the current offering. Add packages to your RevenueCat offering.';
       } else {
-        errorMsg += `Available packages: ${allPackages.map(p => p.identifier).join(', ')}. Expected: $rc_${type}`;
+        errorMsg += `Available: ${allPackages.map(p => `${p.identifier} (${p.packageType})`).join(', ')}`;
       }
       
-      Alert.alert('Error', errorMsg);
+      Alert.alert('Setup Required', errorMsg);
       return;
     }
+    
+    if (fallbackPkg && !pkg) {
+      console.log(`Using fallback package: ${fallbackPkg.identifier} instead of ${type}`);
+    }
 
-    console.log(`Starting ${type} purchase...`);
-    const result = await purchase(pkg);
+    console.log(`Starting ${type} purchase with package:`, packageToUse.identifier);
+    const result = await purchase(packageToUse);
     
     if (result.success) {
       Alert.alert('Success!', 'Your subscription is now active. Enjoy Pro features!', [
