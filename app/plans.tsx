@@ -13,7 +13,10 @@ export default function PlansScreen() {
     annualPackage, 
     isLoadingOfferings, 
     isPurchasing,
-    purchase 
+    purchase,
+    allPackages,
+    hasOfferings,
+    offeringsError,
   } = usePurchases();
 
   const freeFeatures = [
@@ -48,7 +51,18 @@ export default function PlansScreen() {
   const handlePurchase = async (type: 'weekly' | 'annual') => {
     const pkg = type === 'weekly' ? weeklyPackage : annualPackage;
     if (!pkg) {
-      Alert.alert('Error', 'Package not available. Please try again later.');
+      console.log('Package not found. hasOfferings:', hasOfferings, 'allPackages:', allPackages.map(p => p.identifier));
+      
+      let errorMsg = 'Package not available. ';
+      if (!hasOfferings) {
+        errorMsg += 'No offerings configured in RevenueCat. Please check your RevenueCat dashboard.';
+      } else if (allPackages.length === 0) {
+        errorMsg += 'No packages found in the current offering.';
+      } else {
+        errorMsg += `Available packages: ${allPackages.map(p => p.identifier).join(', ')}. Expected: $rc_${type}`;
+      }
+      
+      Alert.alert('Error', errorMsg);
       return;
     }
 

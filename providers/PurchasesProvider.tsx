@@ -5,6 +5,7 @@ import { Platform } from 'react-native';
 import Purchases, { 
   PurchasesPackage,
   LOG_LEVEL,
+  PACKAGE_TYPE,
 } from 'react-native-purchases';
 
 function getRCToken() {
@@ -67,6 +68,13 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
       try {
         const offerings = await Purchases.getOfferings();
         console.log('Offerings fetched:', offerings.current?.identifier);
+        console.log('Available packages:', offerings.current?.availablePackages.map(p => ({
+          id: p.identifier,
+          type: p.packageType,
+          product: p.product.identifier,
+          price: p.product.priceString,
+        })));
+        console.log('All offerings:', Object.keys(offerings.all));
         return offerings;
       } catch (error) {
         console.error('Error fetching offerings:', error);
@@ -74,7 +82,9 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
       }
     },
     enabled: isInitialized,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const purchaseMutation = useMutation({
@@ -158,7 +168,14 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
     purchase,
     restore,
     refreshCustomerInfo,
-    weeklyPackage: offeringsQuery.data?.current?.availablePackages.find(p => p.identifier === '$rc_weekly'),
-    annualPackage: offeringsQuery.data?.current?.availablePackages.find(p => p.identifier === '$rc_annual'),
+    weeklyPackage: offeringsQuery.data?.current?.availablePackages.find(
+      p => p.identifier === '$rc_weekly' || p.packageType === PACKAGE_TYPE.WEEKLY
+    ),
+    annualPackage: offeringsQuery.data?.current?.availablePackages.find(
+      p => p.identifier === '$rc_annual' || p.packageType === PACKAGE_TYPE.ANNUAL
+    ),
+    allPackages: offeringsQuery.data?.current?.availablePackages || [],
+    hasOfferings: !!offeringsQuery.data?.current,
+    offeringsError: offeringsQuery.error?.message,
   };
 });
