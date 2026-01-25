@@ -170,7 +170,14 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
 
   const isPro = useCallback(() => {
     const entitlements = customerInfoQuery.data?.entitlements?.active;
-    return entitlements ? 'pro' in entitlements : false;
+    const hasPro = entitlements ? 'pro' in entitlements : false;
+    console.log('[PurchasesProvider] isPro check:', {
+      hasPro,
+      activeEntitlements: entitlements ? Object.keys(entitlements) : [],
+      activeSubscriptions: customerInfoQuery.data?.activeSubscriptions,
+      allEntitlements: customerInfoQuery.data?.entitlements?.all ? Object.keys(customerInfoQuery.data.entitlements.all) : [],
+    });
+    return hasPro;
   }, [customerInfoQuery.data]);
 
   const purchase = useCallback(async (pkg: PurchasesPackage): Promise<{ success: boolean; error?: string }> => {
