@@ -8,7 +8,7 @@ import { createContext } from "./trpc/create-context";
 const app = new Hono();
 
 console.log("[Backend] Server initializing at", new Date().toISOString());
-console.log("[Backend] Build version: 11 - retry fix");
+console.log("[Backend] Build version: 12 - route fix");
 
 app.use("*", cors({
   origin: '*',
@@ -24,10 +24,10 @@ app.get("/", (c) => {
   return c.json({ status: "ok", message: "API is running", timestamp: new Date().toISOString() });
 });
 
-app.all("/api/trpc/*", async (c, next) => {
+app.all("/trpc/*", async (c, next) => {
   console.log("[Backend] tRPC request:", c.req.method, c.req.url);
   return trpcServer({
-    endpoint: "/api/trpc",
+    endpoint: "/trpc",
     router: appRouter,
     createContext,
   })(c, next);
