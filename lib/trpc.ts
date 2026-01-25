@@ -18,6 +18,40 @@ const getBaseUrl = () => {
   return url;
 };
 
+const fetchWithRetry = async (url: RequestInfo | URL, options?: RequestInit, retries = 2): Promise<Response> => {
+  let lastError: Error | null = null;
+  
+  for (let i = 0; i <= retries; i++) {
+    try {
+      console.log(`[tRPC] Attempt ${i + 1}/${retries + 1} to:`, url);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
+      const response = await fetch(url, {
+        ...options,
+        credentials: 'omit',
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      console.log('[tRPC] Response status:', response.status);
+      return response;
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`[tRPC] Attempt ${i + 1} failed:`, error);
+      
+      if (i < retries) {
+        const delay = Math.min(1000 * Math.pow(2, i), 5000);
+        console.log(`[tRPC] Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError || new Error('Failed to fetch after retries');
+};
+
 export const trpcClient = trpc.createClient({
   links: [
     httpLink({
@@ -28,20 +62,7 @@ export const trpcClient = trpc.createClient({
           'Content-Type': 'application/json',
         };
       },
-      fetch: async (url, options) => {
-        console.log('[tRPC] Making request to:', url);
-        try {
-          const response = await fetch(url, {
-            ...options,
-            credentials: 'omit',
-          });
-          console.log('[tRPC] Response status:', response.status);
-          return response;
-        } catch (error) {
-          console.error('[tRPC] Fetch error:', error);
-          throw error;
-        }
-      },
+      fetch: fetchWithRetry,
     }),
   ],
 });
