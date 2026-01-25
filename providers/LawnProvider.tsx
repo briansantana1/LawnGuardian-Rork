@@ -10,6 +10,55 @@ import * as Crypto from 'expo-crypto';
 import { Task, LawnHealth, WeatherData, UserProfile, SoilTemperature, AIInsight, SavedPlan, SubscriptionStatus } from '@/types/lawn';
 import { mockTasks, mockLawnHealth, mockWeather, mockUserProfile, mockSoilTemperatures, mockAIInsights, mockSavedPlans, generalTips } from '@/mocks/lawnData';
 
+const LOCATION_COORDS: Record<string, { lat: number; lon: number }> = {
+  'Winter Garden, FL': { lat: 28.5653, lon: -81.5862 },
+  'Orlando, FL': { lat: 28.5383, lon: -81.3792 },
+  'Tampa, FL': { lat: 27.9506, lon: -82.4572 },
+  'Miami, FL': { lat: 25.7617, lon: -80.1918 },
+  'Jacksonville, FL': { lat: 30.3322, lon: -81.6557 },
+};
+
+const getWeatherCondition = (code: number): WeatherData['condition'] => {
+  if (code === 0) return 'clear';
+  if (code === 1) return 'clear';
+  if (code === 2) return 'partly_cloudy';
+  if (code === 3) return 'cloudy';
+  if (code >= 51 && code <= 67) return 'rainy';
+  if (code >= 80 && code <= 82) return 'rainy';
+  return 'partly_cloudy';
+};
+
+const getDayName = (dateStr: string, index: number): string => {
+  if (index === 0) return 'Today';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { weekday: 'short' });
+};
+
+const formatDate = (dateStr: string): string => {
+  const date = new Date(dateStr);
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+};
+
+interface OpenMeteoResponse {
+  current: {
+    temperature_2m: number;
+    relative_humidity_2m: number;
+    apparent_temperature: number;
+    weather_code: number;
+    surface_pressure: number;
+    precipitation: number;
+  };
+  daily: {
+    time: string[];
+    temperature_2m_max: number[];
+    temperature_2m_min: number[];
+    weather_code: number[];
+    uv_index_max: number[];
+    precipitation_probability_max: number[];
+    soil_temperature_6cm_max: number[];
+  };
+}
+
 const TASKS_KEY = 'lawn_tasks';
 const PROFILE_KEY = 'lawn_profile';
 const SAVED_PLANS_KEY = 'saved_plans';
@@ -190,9 +239,71 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
   }, [savedPlans, syncSavedPlansMutation]);
 
   const lawnHealth: LawnHealth = mockLawnHealth;
-  const weather: WeatherData = mockWeather;
-  const soilTemperatures: SoilTemperature[] = mockSoilTemperatures;
   const tips = generalTips;
+
+  const weatherQuery = useQuery({
+    queryKey: ['weather', profile.location],
+    queryFn: async (): Promise<{ weather: WeatherData; soilTemps: SoilTemperature[] }> => {
+      console.log('[Weather] Fetching real-time weather for:', profile.location);
+      
+      const coords = LOCATION_COORDS[profile.location] || LOCATION_COORDS['Winter Garden, FL'];
+      
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,precipitation&daily=temperature_2m_max,temperature_2m_min,weather_code,uv_index_max,precipitation_probability_max,soil_temperature_6cm_max&temperature_unit=fahrenheit&timezone=auto&past_days=6`;
+        
+        console.log('[Weather] API URL:', url);
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`Weather API error: ${response.status}`);
+        }
+        
+        const data: OpenMeteoResponse = await response.json();
+        console.log('[Weather] Current temp:', data.current.temperature_2m, '°F');
+        console.log('[Weather] Soil temps:', data.daily.soil_temperature_6cm_max);
+        
+        const todayIndex = 6;
+        const forecast = data.daily.time.slice(todayIndex, todayIndex + 5).map((date, index) => ({
+          day: getDayName(date, index),
+          date: formatDate(date),
+          high: Math.round(data.daily.temperature_2m_max[todayIndex + index]),
+          low: Math.round(data.daily.temperature_2m_min[todayIndex + index]),
+          condition: getWeatherCondition(data.daily.weather_code[todayIndex + index]),
+        }));
+        
+        const weatherData: WeatherData = {
+          temperature: Math.round(data.current.temperature_2m),
+          highTemp: Math.round(data.daily.temperature_2m_max[todayIndex]),
+          condition: getWeatherCondition(data.current.weather_code),
+          humidity: Math.round(data.current.relative_humidity_2m),
+          feelsLike: Math.round(data.current.apparent_temperature),
+          uvIndex: Math.round(data.daily.uv_index_max[todayIndex] || 0),
+          precipitation: `${data.current.precipitation}"`,
+          chanceOfRain: data.daily.precipitation_probability_max[todayIndex] || 0,
+          pressure: Math.round(data.current.surface_pressure),
+          location: profile.location || 'Winter Garden, FL',
+          forecast,
+        };
+        
+        const soilTemps: SoilTemperature[] = data.daily.time.slice(0, 7).map((date, index) => ({
+          date: formatDate(date),
+          day: index === 6 ? 'Today' : getDayName(date, index + 1),
+          temp: Math.round(data.daily.soil_temperature_6cm_max[index] || 55),
+        }));
+        
+        console.log('[Weather] Successfully fetched real-time data');
+        return { weather: weatherData, soilTemps };
+      } catch (error) {
+        console.error('[Weather] Error fetching weather:', error);
+        return { weather: mockWeather, soilTemps: mockSoilTemperatures };
+      }
+    },
+    staleTime: 1000 * 60 * 10,
+    refetchInterval: 1000 * 60 * 15,
+  });
+
+  const weather: WeatherData = weatherQuery.data?.weather ?? mockWeather;
+  const soilTemperatures: SoilTemperature[] = weatherQuery.data?.soilTemps ?? mockSoilTemperatures;
 
   const signOut = useCallback(async () => {
     console.log('Signing out...');
