@@ -1,7 +1,7 @@
 import createContextHook from '@nkzw/create-context-hook';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
-import { Platform } from 'react-native';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import { Platform, AppState, AppStateStatus } from 'react-native';
 import Purchases, { 
   PurchasesPackage,
   LOG_LEVEL,
@@ -33,6 +33,7 @@ if (rcToken && !isConfigured) {
 export const [PurchasesProvider, usePurchases] = createContextHook(() => {
   const queryClient = useQueryClient();
   const [isInitialized, setIsInitialized] = useState(isConfigured);
+  const listenerRemover = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!isConfigured && rcToken) {
@@ -43,6 +44,43 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
       setIsInitialized(true);
     }
   }, []);
+
+  // Listen for customer info updates from RevenueCat
+  useEffect(() => {
+    if (!isInitialized || Platform.OS === 'web') return;
+
+    const setupListener = async () => {
+      try {
+        listenerRemover.current = Purchases.addCustomerInfoUpdateListener((info) => {
+          console.log('RevenueCat customer info updated:', info.activeSubscriptions);
+          queryClient.setQueryData(['customerInfo'], info);
+        });
+      } catch (error) {
+        console.error('Error setting up RevenueCat listener:', error);
+      }
+    };
+
+    setupListener();
+
+    return () => {
+      if (listenerRemover.current) {
+        listenerRemover.current();
+      }
+    };
+  }, [isInitialized, queryClient]);
+
+  // Refresh customer info when app comes to foreground
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active' && isInitialized) {
+        console.log('App became active, refreshing customer info...');
+        queryClient.invalidateQueries({ queryKey: ['customerInfo'] });
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+  }, [isInitialized, queryClient]);
 
   const customerInfoQuery = useQuery({
     queryKey: ['customerInfo'],
@@ -58,7 +96,8 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
       }
     },
     enabled: isInitialized,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 30, // 30 seconds - refresh more frequently
+    refetchOnMount: 'always',
   });
 
   const offeringsQuery = useQuery({

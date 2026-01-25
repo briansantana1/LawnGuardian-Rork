@@ -14,7 +14,16 @@ import { generateObject } from '@rork-ai/toolkit-sdk';
 export default function ScanScreen() {
   const router = useRouter();
   const { profile, addSavedPlan } = useLawn();
-  const { isPro, refreshCustomerInfo } = usePurchases();
+  const { isPro, refreshCustomerInfo, customerInfo } = usePurchases();
+  
+  // Refresh customer info when scan screen mounts
+  useEffect(() => {
+    console.log('[Scan] Screen mounted, refreshing customer info...');
+    console.log('[Scan] Current isPro:', isPro);
+    console.log('[Scan] Active entitlements:', customerInfo?.entitlements?.active);
+    console.log('[Scan] Active subscriptions:', customerInfo?.activeSubscriptions);
+    refreshCustomerInfo();
+  }, []);
   
   const [selectedGrassType, setSelectedGrassType] = useState<GrassType | null>(null);
   const [showGrassDropdown, setShowGrassDropdown] = useState(false);
@@ -95,6 +104,7 @@ export default function ScanScreen() {
       Alert.alert('Grass Type Required', 'Please select your grass type for accurate diagnosis.');
       return;
     }
+    console.log('[Scan] Checking scan permission - scansRemaining:', profile.scansRemaining, 'isPro:', isPro);
     if (profile.scansRemaining <= 0 && !isPro) {
       Alert.alert('No Scans Remaining', 'Upgrade to Pro for unlimited scans.', [
         { text: 'Cancel', style: 'cancel' },
