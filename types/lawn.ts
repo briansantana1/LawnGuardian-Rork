@@ -88,6 +88,7 @@ export interface SavedPlan {
   treatment: string;
   createdAt: string;
   imageUrl?: string;
+  severity?: 'low' | 'medium' | 'high';
 }
 
 export type GrassType = 

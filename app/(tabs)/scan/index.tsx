@@ -685,6 +685,7 @@ Be very specific and detailed - this is a premium paid service. Avoid generic ad
                       diagnosis: analysisResult.detailedDescription,
                       treatment: analysisResult.treatmentOptions.organic.join('. '),
                       imageUrl: selectedImage || undefined,
+                      severity: analysisResult.riskLevel,
                     });
                     Alert.alert('Saved!', 'Treatment plan has been saved to your calendar.');
                   }
