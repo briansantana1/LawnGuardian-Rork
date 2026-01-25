@@ -47,6 +47,7 @@ interface OpenMeteoResponse {
     weather_code: number;
     surface_pressure: number;
     precipitation: number;
+    soil_temperature_6cm?: number;
   };
   daily: {
     time: string[];
@@ -55,7 +56,10 @@ interface OpenMeteoResponse {
     weather_code: number[];
     uv_index_max: number[];
     precipitation_probability_max: number[];
-    soil_temperature_6cm_max: number[];
+  };
+  hourly?: {
+    time: string[];
+    soil_temperature_6cm: number[];
   };
 }
 
@@ -249,7 +253,7 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
       const coords = LOCATION_COORDS[profile.location] || LOCATION_COORDS['Winter Garden, FL'];
       
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,precipitation&daily=temperature_2m_max,temperature_2m_min,weather_code,uv_index_max,precipitation_probability_max,soil_temperature_6cm_max&temperature_unit=fahrenheit&timezone=auto&past_days=6`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,precipitation,soil_temperature_6cm&daily=temperature_2m_max,temperature_2m_min,weather_code,uv_index_max,precipitation_probability_max&hourly=soil_temperature_6cm&temperature_unit=fahrenheit&timezone=auto&forecast_days=7&past_days=6`;
         
         console.log('[Weather] API URL:', url);
         const response = await fetch(url);
@@ -260,7 +264,7 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
         
         const data: OpenMeteoResponse = await response.json();
         console.log('[Weather] Current temp:', data.current.temperature_2m, '°F');
-        console.log('[Weather] Soil temps:', data.daily.soil_temperature_6cm_max);
+        console.log('[Weather] Hourly soil temps available:', !!data.hourly?.soil_temperature_6cm);
         
         const todayIndex = 6;
         const forecast = data.daily.time.slice(todayIndex, todayIndex + 5).map((date, index) => ({
@@ -285,11 +289,18 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
           forecast,
         };
         
-        const soilTemps: SoilTemperature[] = data.daily.time.slice(0, 7).map((date, index) => ({
-          date: formatDate(date),
-          day: index === 6 ? 'Today' : getDayName(date, index + 1),
-          temp: Math.round(data.daily.soil_temperature_6cm_max[index] || 55),
-        }));
+        const soilTemps: SoilTemperature[] = data.daily.time.slice(0, 7).map((date, index) => {
+          let soilTemp = 55;
+          if (data.hourly?.soil_temperature_6cm) {
+            const hourlyIndex = index * 24 + 12;
+            soilTemp = data.hourly.soil_temperature_6cm[hourlyIndex] || 55;
+          }
+          return {
+            date: formatDate(date),
+            day: index === 6 ? 'Today' : getDayName(date, index + 1),
+            temp: Math.round(soilTemp),
+          };
+        });
         
         console.log('[Weather] Successfully fetched real-time data');
         return { weather: weatherData, soilTemps };
