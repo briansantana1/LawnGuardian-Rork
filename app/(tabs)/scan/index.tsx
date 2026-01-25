@@ -104,23 +104,38 @@ export default function ScanScreen() {
       Alert.alert('Grass Type Required', 'Please select your grass type for accurate diagnosis.');
       return;
     }
-    // Always get fresh customer info before checking
+    
+    // Always fetch fresh customer info directly from RevenueCat before checking
     let currentIsPro = isPro;
     
-    // If we have customer info, double-check the subscription status directly
-    if (customerInfo) {
-      const hasAnyActiveEntitlement = customerInfo.entitlements?.active 
-        ? Object.keys(customerInfo.entitlements.active).length > 0 
-        : false;
-      const hasActiveSubscription = (customerInfo.activeSubscriptions || []).length > 0;
-      currentIsPro = hasAnyActiveEntitlement || hasActiveSubscription;
+    try {
+      if (Platform.OS !== 'web') {
+        const Purchases = (await import('react-native-purchases')).default;
+        const freshInfo = await Purchases.getCustomerInfo();
+        console.log('[Scan] Fresh customer info fetched:', {
+          activeSubscriptions: freshInfo.activeSubscriptions,
+          activeEntitlements: freshInfo.entitlements?.active ? Object.keys(freshInfo.entitlements.active) : [],
+        });
+        
+        const hasAnyActiveEntitlement = freshInfo.entitlements?.active 
+          ? Object.keys(freshInfo.entitlements.active).length > 0 
+          : false;
+        const hasActiveSubscription = (freshInfo.activeSubscriptions || []).length > 0;
+        currentIsPro = hasAnyActiveEntitlement || hasActiveSubscription;
+      }
+    } catch (error) {
+      console.log('[Scan] Error fetching fresh customer info, using cached:', error);
+      // Fallback to cached info
+      if (customerInfo) {
+        const hasAnyActiveEntitlement = customerInfo.entitlements?.active 
+          ? Object.keys(customerInfo.entitlements.active).length > 0 
+          : false;
+        const hasActiveSubscription = (customerInfo.activeSubscriptions || []).length > 0;
+        currentIsPro = hasAnyActiveEntitlement || hasActiveSubscription;
+      }
     }
     
     console.log('[Scan] Checking scan permission - scansRemaining:', profile.scansRemaining, 'isPro:', isPro, 'currentIsPro:', currentIsPro);
-    console.log('[Scan] Customer info at scan time:', {
-      activeSubscriptions: customerInfo?.activeSubscriptions,
-      activeEntitlements: customerInfo?.entitlements?.active ? Object.keys(customerInfo.entitlements.active) : [],
-    });
     
     if (profile.scansRemaining <= 0 && !currentIsPro) {
       Alert.alert('No Scans Remaining', 'Upgrade to Pro for unlimited scans.', [
