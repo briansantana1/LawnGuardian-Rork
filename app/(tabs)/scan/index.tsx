@@ -6,6 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import Colors from '@/constants/colors';
 import { useLawn } from '@/providers/LawnProvider';
+import { usePurchases } from '@/providers/PurchasesProvider';
 import { GrassType, GRASS_TYPE_LABELS } from '@/types/lawn';
 import * as z from 'zod';
 import { generateObject } from '@rork-ai/toolkit-sdk';
@@ -13,6 +14,7 @@ import { generateObject } from '@rork-ai/toolkit-sdk';
 export default function ScanScreen() {
   const router = useRouter();
   const { profile, addSavedPlan } = useLawn();
+  const { isPro, refreshCustomerInfo } = usePurchases();
   
   const [selectedGrassType, setSelectedGrassType] = useState<GrassType | null>(null);
   const [showGrassDropdown, setShowGrassDropdown] = useState(false);
@@ -93,7 +95,7 @@ export default function ScanScreen() {
       Alert.alert('Grass Type Required', 'Please select your grass type for accurate diagnosis.');
       return;
     }
-    if (profile.scansRemaining <= 0 && profile.subscriptionStatus === 'free') {
+    if (profile.scansRemaining <= 0 && !isPro) {
       Alert.alert('No Scans Remaining', 'Upgrade to Pro for unlimited scans.', [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Upgrade', onPress: () => router.push('/plans') },
@@ -255,6 +257,7 @@ Be very specific and detailed - this is a premium paid service. Avoid generic ad
       )}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
+        {!isPro && (
         <View style={styles.upgradeBar}>
           <View style={styles.upgradeLeft}>
             <View style={styles.upgradeIconCircle}>
@@ -272,6 +275,7 @@ Be very specific and detailed - this is a premium paid service. Avoid generic ad
             <Text style={styles.upgradeButtonText}>Upgrade</Text>
           </Pressable>
         </View>
+        )}
 
         <Text style={styles.title}>Scan Your Lawn Problem</Text>
         <Text style={styles.subtitle}>
