@@ -197,7 +197,7 @@ export default function ScanScreen() {
           confidence: z.number().min(0).max(100).describe("Confidence percentage of identification"),
           detailedDescription: z.string().describe("Detailed 3-4 sentence description explaining what you see, why it happens, and the impact on the lawn. Be specific about visual indicators and grass type considerations."),
           symptoms: z.array(z.string()).min(3).max(5).describe("Observable symptoms like 'Dandelion seeds blown in by wind from neighboring areas' or 'Thin or stressed grass allowing weeds to establish'. Each should be a complete observation."),
-          causes: z.array(z.string()).min(2).max(4).describe("Root causes like 'Cool weather conditions that favor dandelion growth over warm-season grass' or 'Compacted soil that favors deep-rooted weeds'. Be specific to the grass type."),
+          causes: z.array(z.string()).min(2).max(6).describe("Root causes like 'Cool weather conditions that favor dandelion growth over warm-season grass' or 'Compacted soil that favors deep-rooted weeds'. Be specific to the grass type."),
           identificationSources: z.object({
             primaryId: z.string().describe("Primary identification method used like 'Plant ID' or 'Disease Pattern Analysis'"),
             issuesDetected: z.array(z.object({
