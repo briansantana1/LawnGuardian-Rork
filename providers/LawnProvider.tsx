@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
 import * as Crypto from 'expo-crypto';
 import { Task, LawnHealth, WeatherData, UserProfile, SoilTemperature, AIInsight, SavedPlan, SubscriptionStatus } from '@/types/lawn';
 import { mockTasks, mockLawnHealth, mockWeather, mockUserProfile, mockSoilTemperatures, mockAIInsights, mockSavedPlans, generalTips } from '@/mocks/lawnData';
@@ -327,9 +328,10 @@ export const [LawnProvider, useLawn] = createContextHook(() => {
         `scope=${encodeURIComponent('openid profile email')}&` +
         `state=${state}`;
       
-      const result = await AuthSession.startAsync({
+      const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
-      } as any);
+        redirectUri
+      ) as any;
       
       if (result.type === 'success' && result.params?.access_token) {
         const userInfoResponse = await fetch(

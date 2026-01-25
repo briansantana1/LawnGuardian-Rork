@@ -68,8 +68,8 @@ function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
 }
 
 function convertZodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
-  const def = schema._def;
-  const typeName = def?.typeName;
+  const def = schema._def as any;
+  const typeName = def?.typeName as string | undefined;
 
   switch (typeName) {
     case "ZodString":
@@ -97,7 +97,7 @@ function convertZodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
       const shape = def.shape();
       for (const [key, value] of Object.entries(shape)) {
         properties[key] = convertZodToJsonSchema(value as z.ZodType);
-        if (!((value as z.ZodType)._def?.typeName === "ZodOptional")) {
+        if (!(((value as z.ZodType)._def as any)?.typeName === "ZodOptional")) {
           required.push(key);
         }
       }
