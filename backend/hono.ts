@@ -8,7 +8,7 @@ import { createContext } from "./trpc/create-context";
 const app = new Hono();
 
 console.log("[Backend] Server initializing at", new Date().toISOString());
-console.log("[Backend] Build version: 9 - improved cors");
+console.log("[Backend] Build version: 10 - contact fix");
 
 app.use("*", cors({
   origin: '*',
