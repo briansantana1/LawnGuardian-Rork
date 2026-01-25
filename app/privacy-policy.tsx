@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
 import { Camera, MapPin, Shield, User, Lock } from 'lucide-react-native';
 import Colors from '@/constants/colors';
+
+// Static content - no API loading needed
 
 type IconType = 'camera' | 'mapPin' | 'shield' | 'user';
 
