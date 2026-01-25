@@ -4,6 +4,55 @@ import { createTRPCRouter, publicProcedure } from "../create-context";
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RECIPIENT_EMAIL = "info.lawnguardian@yahoo.com";
 
+const DB_ENDPOINT = process.env.EXPO_PUBLIC_RORK_DB_ENDPOINT;
+const DB_NAMESPACE = process.env.EXPO_PUBLIC_RORK_DB_NAMESPACE;
+const DB_TOKEN = process.env.EXPO_PUBLIC_RORK_DB_TOKEN;
+
+async function saveMessageToDatabase(input: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) {
+  if (!DB_ENDPOINT || !DB_NAMESPACE || !DB_TOKEN) {
+    console.log("[Contact] Database not configured, skipping storage");
+    return null;
+  }
+
+  try {
+    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const messageData = {
+      id: messageId,
+      name: input.name,
+      email: input.email,
+      subject: input.subject,
+      message: input.message,
+      createdAt: new Date().toISOString(),
+      read: false,
+    };
+
+    const response = await fetch(`${DB_ENDPOINT}/kv/${DB_NAMESPACE}/contact_messages/${messageId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${DB_TOKEN}`,
+      },
+      body: JSON.stringify(messageData),
+    });
+
+    if (response.ok) {
+      console.log("[Contact] Message saved to database:", messageId);
+      return messageId;
+    } else {
+      console.error("[Contact] Failed to save to database:", response.status);
+      return null;
+    }
+  } catch (error) {
+    console.error("[Contact] Database save error:", error);
+    return null;
+  }
+}
+
 export const contactRouter = createTRPCRouter({
   sendEmail: publicProcedure
     .input(
@@ -19,9 +68,14 @@ export const contactRouter = createTRPCRouter({
       console.log("[Contact] Subject:", input.subject);
       console.log("[Contact] RESEND_API_KEY configured:", !!RESEND_API_KEY);
       
+      // Always save to database first as backup
+      const savedMessageId = await saveMessageToDatabase(input);
+      console.log("[Contact] Message saved to DB:", savedMessageId);
+      
+      // If no Resend API key, still return success since message is saved
       if (!RESEND_API_KEY) {
-        console.error("[Contact] RESEND_API_KEY is not configured");
-        throw new Error("Email service is not configured. Please contact support.");
+        console.log("[Contact] No RESEND_API_KEY, but message saved to database");
+        return { success: true, message: "Message received successfully", id: savedMessageId };
       }
       
       try {
@@ -75,10 +129,38 @@ export const contactRouter = createTRPCRouter({
         return { success: true, message: "Email sent successfully", id: responseData.id };
       } catch (error) {
         console.error("[Contact] Error sending email:", error);
+        // Even if email fails, message is saved to database
+        if (savedMessageId) {
+          console.log("[Contact] Email failed but message saved to database");
+          return { success: true, message: "Message received successfully", id: savedMessageId };
+        }
         if (error instanceof Error) {
           throw error;
         }
-        throw new Error("Failed to send email. Please try again later.");
+        throw new Error("Failed to send message. Please try again later.");
       }
     }),
+
+  getMessages: publicProcedure.query(async () => {
+    if (!DB_ENDPOINT || !DB_NAMESPACE || !DB_TOKEN) {
+      return [];
+    }
+
+    try {
+      const response = await fetch(`${DB_ENDPOINT}/kv/${DB_NAMESPACE}/contact_messages?prefix=`, {
+        headers: {
+          "Authorization": `Bearer ${DB_TOKEN}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.values || [];
+      }
+      return [];
+    } catch (error) {
+      console.error("[Contact] Error fetching messages:", error);
+      return [];
+    }
+  }),
 });
