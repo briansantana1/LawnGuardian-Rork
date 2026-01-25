@@ -33,7 +33,7 @@ if (rcToken && !isConfigured) {
 export const [PurchasesProvider, usePurchases] = createContextHook(() => {
   const queryClient = useQueryClient();
   const [isInitialized, setIsInitialized] = useState(isConfigured);
-  const listenerRemover = useRef<(() => void) | null>(null);
+  const listenerCallbackRef = useRef<((info: any) => void) | null>(null);
 
   useEffect(() => {
     if (!isConfigured && rcToken) {
@@ -49,22 +49,26 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
   useEffect(() => {
     if (!isInitialized || Platform.OS === 'web') return;
 
-    const setupListener = async () => {
-      try {
-        listenerRemover.current = Purchases.addCustomerInfoUpdateListener((info) => {
-          console.log('RevenueCat customer info updated:', info.activeSubscriptions);
-          queryClient.setQueryData(['customerInfo'], info);
-        });
-      } catch (error) {
-        console.error('Error setting up RevenueCat listener:', error);
-      }
+    const callback = (info: any) => {
+      console.log('RevenueCat customer info updated:', info.activeSubscriptions);
+      queryClient.setQueryData(['customerInfo'], info);
     };
 
-    setupListener();
+    listenerCallbackRef.current = callback;
+
+    try {
+      Purchases.addCustomerInfoUpdateListener(callback);
+    } catch (error) {
+      console.error('Error setting up RevenueCat listener:', error);
+    }
 
     return () => {
-      if (listenerRemover.current) {
-        listenerRemover.current();
+      if (listenerCallbackRef.current) {
+        try {
+          Purchases.removeCustomerInfoUpdateListener(listenerCallbackRef.current);
+        } catch (error) {
+          console.error('Error removing RevenueCat listener:', error);
+        }
       }
     };
   }, [isInitialized, queryClient]);
