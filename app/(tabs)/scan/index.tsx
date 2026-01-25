@@ -132,6 +132,8 @@ export default function ScanScreen() {
 
     try {
       let base64Image = '';
+      console.log('[Scan] Processing image URI:', selectedImage);
+      
       if (Platform.OS === 'web') {
         const response = await fetch(selectedImage);
         const blob = await response.blob();
@@ -141,10 +143,31 @@ export default function ScanScreen() {
           reader.readAsDataURL(blob);
         });
       } else {
-        const base64 = await FileSystem.readAsStringAsync(selectedImage, {
-          encoding: 'base64',
-        });
-        base64Image = `data:image/jpeg;base64,${base64}`;
+        try {
+          // First check if file exists and get info
+          const fileInfo = await FileSystem.getInfoAsync(selectedImage);
+          console.log('[Scan] File info:', fileInfo);
+          
+          if (!fileInfo.exists) {
+            throw new Error('Image file does not exist');
+          }
+          
+          const base64 = await FileSystem.readAsStringAsync(selectedImage, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          base64Image = `data:image/jpeg;base64,${base64}`;
+        } catch (fileError) {
+          console.error('[Scan] FileSystem error, trying fetch fallback:', fileError);
+          // Fallback: try using fetch for iOS camera images
+          const response = await fetch(selectedImage);
+          const blob = await response.blob();
+          base64Image = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error('Failed to read image blob'));
+            reader.readAsDataURL(blob);
+          });
+        }
       }
 
       console.log('Starting lawn analysis...');
