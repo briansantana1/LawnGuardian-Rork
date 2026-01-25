@@ -22,6 +22,8 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(2026, 0, 23));
   const [entries, setEntries] = useState<TreatmentEntry[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<TreatmentEntry | null>(null);
   const [treatmentName, setTreatmentName] = useState('');
   const [treatmentNotes, setTreatmentNotes] = useState('');
 
@@ -113,6 +115,37 @@ export default function CalendarScreen() {
     };
     setEntries([...entries, newEntry]);
     closeAddModal();
+  };
+
+  const openEditModal = (entry: TreatmentEntry) => {
+    setEditingEntry(entry);
+    setTreatmentName(entry.title);
+    setTreatmentNotes(entry.description === 'No notes' ? '' : entry.description);
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditingEntry(null);
+    setTreatmentName('');
+    setTreatmentNotes('');
+  };
+
+  const updateEntry = () => {
+    if (!treatmentName.trim() || !editingEntry) return;
+    
+    setEntries(entries.map(e => 
+      e.id === editingEntry.id 
+        ? { ...e, title: treatmentName.trim(), description: treatmentNotes.trim() || 'No notes' }
+        : e
+    ));
+    closeEditModal();
+  };
+
+  const deleteEntry = () => {
+    if (!editingEntry) return;
+    setEntries(entries.filter(e => e.id !== editingEntry.id));
+    closeEditModal();
   };
 
   const formatModalDate = () => {
@@ -258,10 +291,17 @@ export default function CalendarScreen() {
             </View>
           ) : (
             selectedDateEntries.map((entry) => (
-              <View key={entry.id} style={styles.entryCard}>
-                <Text style={styles.entryTitle}>{entry.title}</Text>
+              <Pressable 
+                key={entry.id} 
+                style={({ pressed }) => [styles.entryCard, pressed && styles.entryCardPressed]}
+                onPress={() => openEditModal(entry)}
+              >
+                <View style={styles.entryHeader}>
+                  <Text style={styles.entryTitle}>{entry.title}</Text>
+                  <ChevronRight size={16} color={Colors.light.textMuted} />
+                </View>
                 <Text style={styles.entryDescription}>{entry.description}</Text>
-              </View>
+              </Pressable>
             ))
           )}
         </View>
@@ -327,6 +367,63 @@ export default function CalendarScreen() {
                 disabled={!treatmentName.trim()}
               >
                 <Text style={styles.modalAddButtonText}>Add Entry</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showEditModal}
+        transparent
+        animationType="fade"
+        onRequestClose={closeEditModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Entry</Text>
+              <Pressable onPress={closeEditModal} style={styles.modalCloseButton}>
+                <X size={20} color={Colors.light.textSecondary} />
+              </Pressable>
+            </View>
+
+            <Text style={styles.modalDate}>{editingEntry ? formatModalDate() : ''}</Text>
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Treatment name"
+              placeholderTextColor={Colors.light.textMuted}
+              value={treatmentName}
+              onChangeText={setTreatmentName}
+              autoFocus
+            />
+
+            <TextInput
+              style={[styles.modalInput, styles.modalNotesInput]}
+              placeholder="Notes (optional)"
+              placeholderTextColor={Colors.light.textMuted}
+              value={treatmentNotes}
+              onChangeText={setTreatmentNotes}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+
+            <Pressable style={styles.deleteEntryButton} onPress={deleteEntry}>
+              <Text style={styles.deleteEntryText}>Delete Entry</Text>
+            </Pressable>
+
+            <View style={styles.modalButtons}>
+              <Pressable style={styles.modalCancelButton} onPress={closeEditModal}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable 
+                style={[styles.modalAddButton, !treatmentName.trim() && styles.modalAddButtonDisabled]} 
+                onPress={updateEntry}
+                disabled={!treatmentName.trim()}
+              >
+                <Text style={styles.modalAddButtonText}>Save Changes</Text>
               </Pressable>
             </View>
           </View>
@@ -616,6 +713,14 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
+  entryCardPressed: {
+    opacity: 0.7,
+  },
+  entryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   entryTitle: {
     fontSize: 15,
     fontWeight: '600' as const,
@@ -731,5 +836,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#FFF',
     fontWeight: '600' as const,
+  },
+  deleteEntryButton: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginTop: 4,
+  },
+  deleteEntryText: {
+    fontSize: 15,
+    color: Colors.light.error,
+    fontWeight: '500' as const,
   },
 });
