@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../create-context";
 
-const TOOLKIT_URL = process.env.EXPO_PUBLIC_TOOLKIT_URL || "https://toolkit.rork.com";
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
 export const contactRouter = createTRPCRouter({
   sendEmail: publicProcedure
@@ -17,14 +17,21 @@ export const contactRouter = createTRPCRouter({
       console.log("[Contact] Sending email from:", input.name, input.email);
       console.log("[Contact] Subject:", input.subject);
       
+      if (!RESEND_API_KEY) {
+        console.error("[Contact] RESEND_API_KEY is not configured");
+        throw new Error("Email service is not configured. Please contact support.");
+      }
+      
       try {
-        const response = await fetch(`${TOOLKIT_URL}/email/send`, {
+        const response = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            to: "info.lawnguardian@yahoo.com",
+            from: "Lawn Guardian <onboarding@resend.dev>",
+            to: ["info.lawnguardian@yahoo.com"],
             subject: `[Lawn Guardian] ${input.subject}`,
             html: `
               <h2>New Contact Form Submission</h2>
@@ -36,17 +43,18 @@ export const contactRouter = createTRPCRouter({
               <p>${input.message.replace(/\n/g, '<br />')}</p>
             `,
             text: `New Contact Form Submission\n\nFrom: ${input.name}\nEmail: ${input.email}\nSubject: ${input.subject}\n\nMessage:\n${input.message}`,
-            replyTo: input.email,
+            reply_to: input.email,
           }),
         });
 
+        const responseData = await response.json();
+        
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error("[Contact] Email API error:", response.status, errorText);
-          throw new Error(`Failed to send email: ${response.status}`);
+          console.error("[Contact] Resend API error:", response.status, responseData);
+          throw new Error(`Failed to send email: ${responseData.message || response.status}`);
         }
 
-        console.log("[Contact] Email sent successfully");
+        console.log("[Contact] Email sent successfully, id:", responseData.id);
         return { success: true, message: "Email sent successfully" };
       } catch (error) {
         console.error("[Contact] Error sending email:", error);
