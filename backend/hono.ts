@@ -8,9 +8,16 @@ import { createContext } from "./trpc/create-context";
 const app = new Hono();
 
 console.log("[Backend] Server initializing at", new Date().toISOString());
-console.log("[Backend] Build version: 8 - direct api calls");
+console.log("[Backend] Build version: 9 - improved cors");
 
-app.use("*", cors());
+app.use("*", cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'x-trpc-source'],
+  exposeHeaders: ['Content-Length'],
+  maxAge: 86400,
+  credentials: false,
+}));
 
 app.get("/", (c) => {
   console.log("[Backend] Health check endpoint called");
