@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert, Linking, ActivityIndicator } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { Mail, User, MessageSquare, ChevronDown, Send, CheckCircle, ArrowLeft } from 'lucide-react-native';
@@ -14,6 +14,10 @@ const SUBJECTS = [
   'Other',
 ];
 
+const getApiBaseUrl = () => {
+  return process.env.EXPO_PUBLIC_RORK_API_BASE_URL || '';
+};
+
 export default function ContactUsScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -21,17 +25,77 @@ export default function ContactUsScreen() {
   const [message, setMessage] = useState('');
   const [showSubjectDropdown, setShowSubjectDropdown] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        const baseUrl = getApiBaseUrl();
+        console.log('[Contact] API Base URL:', baseUrl);
+        const response = await fetch(`${baseUrl}/api`, { method: 'GET' });
+        const data = await response.json();
+        console.log('[Contact] Backend health check:', data);
+      } catch (error) {
+        console.error('[Contact] Backend health check failed:', error);
+      }
+    };
+    checkBackend();
+  }, []);
 
   const sendEmailMutation = trpc.contact.sendEmail.useMutation({
     onSuccess: () => {
-      console.log('[Contact] Email sent successfully');
+      console.log('[Contact] Email sent successfully via tRPC');
+      setIsSending(false);
       setShowConfirmation(true);
     },
     onError: (error) => {
-      console.error('[Contact] Error sending email:', error);
-      Alert.alert('Error', 'Failed to send your message. Please try again or email us directly at info.lawnguardian@yahoo.com');
+      console.error('[Contact] tRPC error:', error);
+      sendEmailDirectly();
     },
   });
+
+  const sendEmailDirectly = async () => {
+    console.log('[Contact] Attempting direct API call...');
+    try {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/trpc/contact.sendEmail`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          json: {
+            name: name.trim(),
+            email: email.trim(),
+            subject,
+            message: message.trim(),
+          },
+        }),
+      });
+      
+      console.log('[Contact] Direct API response status:', response.status);
+      const data = await response.json();
+      console.log('[Contact] Direct API response:', data);
+      
+      if (response.ok && data.result?.data?.json?.success) {
+        setShowConfirmation(true);
+      } else {
+        throw new Error(data.error?.message || 'Failed to send email');
+      }
+    } catch (error) {
+      console.error('[Contact] Direct API error:', error);
+      Alert.alert(
+        'Error', 
+        'Failed to send your message. Please email us directly at info.lawnguardian@yahoo.com',
+        [
+          { text: 'Email Us', onPress: () => Linking.openURL('mailto:info.lawnguardian@yahoo.com') },
+          { text: 'Cancel', style: 'cancel' },
+        ]
+      );
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const handleSendEmail = () => {
     if (!name.trim() || !email.trim() || !subject || subject === 'Select a subject' || !message.trim()) {
@@ -45,6 +109,9 @@ export default function ContactUsScreen() {
       return;
     }
 
+    setIsSending(true);
+    console.log('[Contact] Starting email send...');
+    
     sendEmailMutation.mutate({
       name: name.trim(),
       email: email.trim(),
@@ -52,6 +119,8 @@ export default function ContactUsScreen() {
       message: message.trim(),
     });
   };
+
+  const isLoading = isSending || sendEmailMutation.isPending;
 
   const handleEmailLink = () => {
     Linking.openURL('mailto:info.lawnguardian@yahoo.com');
@@ -149,7 +218,7 @@ export default function ContactUsScreen() {
                 onChangeText={setName}
                 placeholder="John Doe"
                 placeholderTextColor={Colors.light.textMuted}
-                editable={!sendEmailMutation.isPending}
+                editable={!isLoading}
               />
             </View>
 
@@ -166,7 +235,7 @@ export default function ContactUsScreen() {
                 placeholderTextColor={Colors.light.textMuted}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                editable={!sendEmailMutation.isPending}
+                editable={!isLoading}
               />
             </View>
 
@@ -174,7 +243,7 @@ export default function ContactUsScreen() {
               <Text style={styles.inputLabelText}>Subject</Text>
               <Pressable 
                 style={styles.dropdown}
-                onPress={() => !sendEmailMutation.isPending && setShowSubjectDropdown(!showSubjectDropdown)}
+                onPress={() => !isLoading && setShowSubjectDropdown(!showSubjectDropdown)}
               >
                 <Text style={[styles.dropdownText, !subject && styles.dropdownPlaceholder]}>
                   {subject || 'Select a subject'}
@@ -215,7 +284,7 @@ export default function ContactUsScreen() {
                 multiline
                 numberOfLines={5}
                 textAlignVertical="top"
-                editable={!sendEmailMutation.isPending}
+                editable={!isLoading}
               />
             </View>
 
@@ -223,12 +292,12 @@ export default function ContactUsScreen() {
               style={({ pressed }) => [
                 styles.sendButton, 
                 pressed && styles.buttonPressed,
-                sendEmailMutation.isPending && styles.sendButtonDisabled
+                isLoading && styles.sendButtonDisabled
               ]}
               onPress={handleSendEmail}
-              disabled={sendEmailMutation.isPending}
+              disabled={isLoading}
             >
-              {sendEmailMutation.isPending ? (
+              {isLoading ? (
                 <>
                   <ActivityIndicator size="small" color="#FFF" />
                   <Text style={styles.sendButtonText}>Sending...</Text>

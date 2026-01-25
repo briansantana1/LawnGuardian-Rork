@@ -7,37 +7,42 @@ import { createContext } from "./trpc/create-context";
 
 const app = new Hono();
 
-console.log("[Backend] Server initializing at", new Date().toISOString());
-console.log("[Backend] Build version: 12 - route fix");
+const VERSION = "16";
+console.log(`[Backend] v${VERSION} starting at`, new Date().toISOString());
+console.log(`[Backend] RESEND_API_KEY:`, process.env.RESEND_API_KEY ? "configured" : "MISSING");
 
 app.use("*", cors({
-  origin: '*',
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'x-trpc-source'],
-  exposeHeaders: ['Content-Length'],
+  origin: "*",
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowHeaders: ["Content-Type", "Authorization", "x-trpc-source"],
+  exposeHeaders: ["Content-Length"],
   maxAge: 86400,
   credentials: false,
 }));
 
 app.get("/", (c) => {
-  console.log("[Backend] Health check endpoint called");
-  return c.json({ status: "ok", message: "API is running", timestamp: new Date().toISOString() });
+  console.log(`[Backend] v${VERSION} health check`);
+  return c.json({ 
+    status: "ok", 
+    version: VERSION,
+    timestamp: new Date().toISOString(),
+    resendConfigured: !!process.env.RESEND_API_KEY,
+  });
 });
 
-app.all("/trpc/*", async (c, next) => {
-  console.log("[Backend] tRPC request:", c.req.method, c.req.url);
+app.all("/trpc/*", (c) => {
+  console.log(`[Backend] v${VERSION} tRPC:`, c.req.method, c.req.path);
   return trpcServer({
-    endpoint: "/trpc",
     router: appRouter,
     createContext,
-  })(c, next);
+  })(c, async () => {});
 });
 
 app.onError((err, c) => {
-  console.error("[Backend] Error:", err);
+  console.error(`[Backend] v${VERSION} error:`, err.message);
   return c.json({ error: err.message }, 500);
 });
 
-console.log("[Backend] Server ready");
+console.log(`[Backend] v${VERSION} ready`);
 
 export default app;
