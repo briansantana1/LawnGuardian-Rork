@@ -146,8 +146,9 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
         throw error;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customerInfo'] });
+    onSuccess: (customerInfo) => {
+      console.log('[PurchasesProvider] Setting customer info after purchase:', customerInfo.activeSubscriptions);
+      queryClient.setQueryData(['customerInfo'], customerInfo);
     },
   });
 
@@ -157,14 +158,16 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
       try {
         const customerInfo = await Purchases.restorePurchases();
         console.log('Restore successful:', customerInfo.activeSubscriptions);
+        console.log('Restore entitlements:', customerInfo.entitlements?.active);
         return customerInfo;
       } catch (error) {
         console.error('Restore error:', error);
         throw error;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customerInfo'] });
+    onSuccess: (customerInfo) => {
+      console.log('[PurchasesProvider] Setting customer info after restore:', customerInfo.activeSubscriptions);
+      queryClient.setQueryData(['customerInfo'], customerInfo);
     },
   });
 
