@@ -170,11 +170,22 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
 
   const isPro = useCallback(() => {
     const entitlements = customerInfoQuery.data?.entitlements?.active;
-    const hasPro = entitlements ? 'pro' in entitlements : false;
+    const activeSubscriptions = customerInfoQuery.data?.activeSubscriptions || [];
+    
+    // Check for any active entitlement (pro, Pro, premium, unlimited, etc.)
+    const hasAnyActiveEntitlement = entitlements ? Object.keys(entitlements).length > 0 : false;
+    
+    // Also check if there are any active subscriptions
+    const hasActiveSubscription = activeSubscriptions.length > 0;
+    
+    const hasPro = hasAnyActiveEntitlement || hasActiveSubscription;
+    
     console.log('[PurchasesProvider] isPro check:', {
       hasPro,
+      hasAnyActiveEntitlement,
+      hasActiveSubscription,
       activeEntitlements: entitlements ? Object.keys(entitlements) : [],
-      activeSubscriptions: customerInfoQuery.data?.activeSubscriptions,
+      activeSubscriptions,
       allEntitlements: customerInfoQuery.data?.entitlements?.all ? Object.keys(customerInfoQuery.data.entitlements.all) : [],
     });
     return hasPro;
@@ -195,7 +206,9 @@ export const [PurchasesProvider, usePurchases] = createContextHook(() => {
   const restore = useCallback(async (): Promise<{ success: boolean; hasActiveSubscription: boolean; error?: string }> => {
     try {
       const customerInfo = await restoreMutation.mutateAsync();
-      const hasActive = customerInfo.entitlements?.active ? 'pro' in customerInfo.entitlements.active : false;
+      const hasActiveEntitlement = customerInfo.entitlements?.active ? Object.keys(customerInfo.entitlements.active).length > 0 : false;
+      const hasActiveSubscription = (customerInfo.activeSubscriptions || []).length > 0;
+      const hasActive = hasActiveEntitlement || hasActiveSubscription;
       return { success: true, hasActiveSubscription: hasActive };
     } catch (error: any) {
       return { success: false, hasActiveSubscription: false, error: error.message || 'Restore failed' };
