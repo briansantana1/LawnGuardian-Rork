@@ -5,11 +5,13 @@ import { User, MapPin, Leaf, Key, ChevronRight, CreditCard, XCircle, RefreshCw, 
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Colors from '@/constants/colors';
 import { useLawn } from '@/providers/LawnProvider';
+import { usePurchases } from '@/providers/PurchasesProvider';
 import { GrassType, GRASS_TYPE_LABELS } from '@/types/lawn';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { profile, updateProfile, signOut, signIn, signInWithApple, signInWithGoogle, isSignedIn, isAuthLoading } = useLawn();
+  const { isPro } = usePurchases();
   const [isAppleAuthAvailable, setIsAppleAuthAvailable] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState(profile.name);
@@ -122,20 +124,25 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.subscriptionCard}>
-            <View style={styles.subscriptionIcon}>
-              <Key size={24} color={Colors.light.primary} />
+            <View style={[styles.subscriptionIcon, isPro && styles.subscriptionIconPro]}>
+              <Key size={24} color={isPro ? '#FFF' : Colors.light.primary} />
             </View>
-            <Text style={styles.subscriptionTitle}>Subscription</Text>
+            <Text style={styles.subscriptionTitle}>{isPro ? 'Pro Member' : 'Subscription'}</Text>
             <Text style={styles.subscriptionDesc}>
-              Upgrade to Pro for unlimited AI-powered lawn scans and detailed treatment plans.
+              {isPro 
+                ? 'You have unlimited access to AI-powered lawn scans and detailed treatment plans.'
+                : 'Upgrade to Pro for unlimited AI-powered lawn scans and detailed treatment plans.'
+              }
             </Text>
-            <Pressable 
-              style={styles.upgradeButton}
-              onPress={() => router.push('/plans')}
-            >
-              <Key size={16} color={Colors.light.primary} />
-              <Text style={styles.upgradeButtonText}>Upgrade to Pro</Text>
-            </Pressable>
+            {!isPro && (
+              <Pressable 
+                style={styles.upgradeButton}
+                onPress={() => router.push('/plans')}
+              >
+                <Key size={16} color={Colors.light.primary} />
+                <Text style={styles.upgradeButtonText}>Upgrade to Pro</Text>
+              </Pressable>
+            )}
           </View>
 
           <View style={styles.menuSection}>
@@ -479,6 +486,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  subscriptionIconPro: {
+    backgroundColor: Colors.light.primary,
   },
   subscriptionTitle: {
     fontSize: 16,
