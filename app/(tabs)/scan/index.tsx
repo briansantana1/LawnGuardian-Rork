@@ -153,7 +153,7 @@ export default function ScanScreen() {
           }
           
           const base64 = await FileSystem.readAsStringAsync(selectedImage, {
-            encoding: FileSystem.EncodingType.Base64,
+            encoding: 'base64',
           });
           base64Image = `data:image/jpeg;base64,${base64}`;
         } catch (fileError) {
