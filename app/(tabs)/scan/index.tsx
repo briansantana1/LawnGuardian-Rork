@@ -14,7 +14,7 @@ import { generateObject } from '@rork-ai/toolkit-sdk';
 export default function ScanScreen() {
   const router = useRouter();
   const { profile, addSavedPlan } = useLawn();
-  const { isPro, refreshCustomerInfo, customerInfo } = usePurchases();
+  const { isPro, refreshCustomerInfo, customerInfo, isLoadingCustomerInfo } = usePurchases();
   
   // Refresh customer info when scan screen mounts
   useEffect(() => {
@@ -104,8 +104,25 @@ export default function ScanScreen() {
       Alert.alert('Grass Type Required', 'Please select your grass type for accurate diagnosis.');
       return;
     }
-    console.log('[Scan] Checking scan permission - scansRemaining:', profile.scansRemaining, 'isPro:', isPro);
-    if (profile.scansRemaining <= 0 && !isPro) {
+    // Always get fresh customer info before checking
+    let currentIsPro = isPro;
+    
+    // If we have customer info, double-check the subscription status directly
+    if (customerInfo) {
+      const hasAnyActiveEntitlement = customerInfo.entitlements?.active 
+        ? Object.keys(customerInfo.entitlements.active).length > 0 
+        : false;
+      const hasActiveSubscription = (customerInfo.activeSubscriptions || []).length > 0;
+      currentIsPro = hasAnyActiveEntitlement || hasActiveSubscription;
+    }
+    
+    console.log('[Scan] Checking scan permission - scansRemaining:', profile.scansRemaining, 'isPro:', isPro, 'currentIsPro:', currentIsPro);
+    console.log('[Scan] Customer info at scan time:', {
+      activeSubscriptions: customerInfo?.activeSubscriptions,
+      activeEntitlements: customerInfo?.entitlements?.active ? Object.keys(customerInfo.entitlements.active) : [],
+    });
+    
+    if (profile.scansRemaining <= 0 && !currentIsPro) {
       Alert.alert('No Scans Remaining', 'Upgrade to Pro for unlimited scans.', [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Upgrade', onPress: () => router.push('/plans') },
@@ -214,7 +231,7 @@ Be very specific and detailed - this is a premium paid service. Avoid generic ad
       console.error('Error preparing image:', error);
       Alert.alert('Error', 'Failed to process image. Please try again.');
     }
-  }, [selectedImage, selectedGrassType, profile, router, addSavedPlan]);
+  }, [selectedImage, selectedGrassType, profile, router, addSavedPlan, isPro, customerInfo]);
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
