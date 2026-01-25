@@ -58,29 +58,44 @@ export default function ContactUsScreen() {
     console.log('[Contact] Attempting direct API call...');
     try {
       const baseUrl = getApiBaseUrl();
-      const response = await fetch(`${baseUrl}/api/trpc/contact.sendEmail`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      console.log('[Contact] Base URL:', baseUrl);
+      
+      const payload = {
+        "0": {
           json: {
             name: name.trim(),
             email: email.trim(),
             subject,
             message: message.trim(),
           },
-        }),
+        },
+      };
+      
+      console.log('[Contact] Sending payload:', JSON.stringify(payload));
+      
+      const response = await fetch(`${baseUrl}/api/trpc/contact.sendEmail?batch=1`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
       
       console.log('[Contact] Direct API response status:', response.status);
-      const data = await response.json();
-      console.log('[Contact] Direct API response:', data);
+      const responseText = await response.text();
+      console.log('[Contact] Direct API response text:', responseText);
       
-      if (response.ok && data.result?.data?.json?.success) {
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        throw new Error('Invalid response from server');
+      }
+      
+      if (response.ok && (data[0]?.result?.data?.json?.success || data.result?.data?.json?.success)) {
         setShowConfirmation(true);
       } else {
-        throw new Error(data.error?.message || 'Failed to send email');
+        throw new Error(data[0]?.error?.message || data.error?.message || 'Failed to send email');
       }
     } catch (error) {
       console.error('[Contact] Direct API error:', error);

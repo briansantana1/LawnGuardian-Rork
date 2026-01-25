@@ -23,11 +23,7 @@ const customFetch = async (url: RequestInfo | URL, options?: RequestInit): Promi
   console.log('[tRPC] Method:', options?.method || 'GET');
   
   try {
-    const response = await fetch(url, {
-      ...options,
-      mode: 'cors',
-    });
-    
+    const response = await fetch(url, options);
     console.log('[tRPC] Response status:', response.status);
     return response;
   } catch (error) {
