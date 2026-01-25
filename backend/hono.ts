@@ -7,7 +7,7 @@ import { createContext } from "./trpc/create-context";
 
 const app = new Hono();
 
-const VERSION = "17";
+const VERSION = "18";
 console.log(`[Backend] v${VERSION} starting at`, new Date().toISOString());
 console.log(`[Backend] RESEND_API_KEY:`, process.env.RESEND_API_KEY ? "configured" : "MISSING");
 
