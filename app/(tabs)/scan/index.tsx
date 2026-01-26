@@ -159,30 +159,46 @@ export default function ScanScreen() {
         });
       } else {
         try {
-          // First check if file exists and get info
           const fileInfo = await FileSystem.getInfoAsync(selectedImage);
-          console.log('[Scan] File info:', fileInfo);
+          console.log('[Scan] File info:', JSON.stringify(fileInfo));
           
           if (!fileInfo.exists) {
             throw new Error('Image file does not exist');
           }
           
+          if (fileInfo.size && fileInfo.size > 10 * 1024 * 1024) {
+            console.warn('[Scan] Image file is very large:', fileInfo.size, 'bytes');
+          }
+          
           const base64 = await FileSystem.readAsStringAsync(selectedImage, {
-            encoding: 'base64',
+            encoding: FileSystem.EncodingType.Base64,
           });
-          base64Image = `data:image/jpeg;base64,${base64}`;
+          
+          const extension = selectedImage.split('.').pop()?.toLowerCase() || 'jpeg';
+          const mimeType = extension === 'png' ? 'image/png' : 'image/jpeg';
+          base64Image = `data:${mimeType};base64,${base64}`;
+          console.log('[Scan] Base64 image created, length:', base64Image.length);
         } catch (fileError) {
           console.error('[Scan] FileSystem error, trying fetch fallback:', fileError);
-          // Fallback: try using fetch for iOS camera images
-          const response = await fetch(selectedImage);
-          const blob = await response.blob();
-          base64Image = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = () => reject(new Error('Failed to read image blob'));
-            reader.readAsDataURL(blob);
-          });
+          try {
+            const response = await fetch(selectedImage);
+            const blob = await response.blob();
+            base64Image = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = () => reject(new Error('Failed to read image blob'));
+              reader.readAsDataURL(blob);
+            });
+            console.log('[Scan] Base64 via fetch fallback, length:', base64Image.length);
+          } catch (fetchError) {
+            console.error('[Scan] Fetch fallback also failed:', fetchError);
+            throw new Error('Unable to read the image file. Please try taking a new photo.');
+          }
         }
+      }
+      
+      if (!base64Image || base64Image.length < 100) {
+        throw new Error('Failed to process image. Please try again with a different photo.');
       }
 
       console.log('Starting lawn analysis...');
@@ -254,11 +270,22 @@ Be very specific and detailed - this is a premium paid service. Avoid generic ad
         console.error('[Scan] Analysis error:', analysisError);
         let errorMessage = 'Failed to analyze image. Please try again.';
         if (analysisError instanceof Error) {
-          errorMessage = analysisError.message;
           console.error('[Scan] Error name:', analysisError.name);
+          console.error('[Scan] Error message:', analysisError.message);
           console.error('[Scan] Error stack:', analysisError.stack);
+          
+          if (analysisError.message.includes('timeout') || analysisError.message.includes('Timeout')) {
+            errorMessage = 'Request timed out. Please try again.';
+          } else if (analysisError.message.includes('network') || analysisError.message.includes('Network')) {
+            errorMessage = 'Network error. Please check your connection and try again.';
+          } else if (analysisError.message.includes('413') || analysisError.message.includes('too large')) {
+            errorMessage = 'Image is too large. Please try with a smaller photo.';
+          } else {
+            errorMessage = analysisError.message;
+          }
         } else if (typeof analysisError === 'object' && analysisError !== null) {
           const errObj = analysisError as Record<string, unknown>;
+          console.error('[Scan] Error object:', JSON.stringify(errObj));
           errorMessage = String(errObj.message || errObj.error || JSON.stringify(analysisError));
         }
         Alert.alert('Analysis Failed', errorMessage);
