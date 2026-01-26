@@ -179,7 +179,7 @@ export default function ScanScreen() {
           base64Image = `data:${mimeType};base64,${base64}`;
           console.log('[Scan] Base64 image created, length:', base64Image.length);
         } catch (fileError) {
-          console.error('[Scan] FileSystem error, trying fetch fallback:', fileError);
+          console.log('[Scan] FileSystem not available, using fetch fallback');
           try {
             const response = await fetch(selectedImage);
             const blob = await response.blob();
