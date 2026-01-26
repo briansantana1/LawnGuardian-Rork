@@ -86,6 +86,9 @@ export const contactRouter = createTRPCRouter({
       console.log("[Contact] Message:", input.message);
       console.log("[Contact] ===================");
       
+      // Attempt to send via Resend (best effort - don't fail if it doesn't work)
+      let emailId: string | null = null;
+      
       try {
         const emailPayload = {
           from: "Lawn Guardian <onboarding@resend.dev>",
@@ -119,33 +122,28 @@ export const contactRouter = createTRPCRouter({
         console.log("[Contact] Resend API response status:", response.status);
         console.log("[Contact] Resend API response body:", responseText);
         
-        let responseData;
-        try {
-          responseData = JSON.parse(responseText);
-        } catch {
-          console.error("[Contact] Failed to parse response as JSON:", responseText);
-          throw new Error("Invalid response from email service");
+        if (response.ok) {
+          try {
+            const responseData = JSON.parse(responseText);
+            emailId = responseData.id;
+            console.log("[Contact] Email sent successfully, id:", emailId);
+          } catch {
+            console.log("[Contact] Email sent but couldn't parse response");
+          }
+        } else {
+          console.log("[Contact] Resend API returned error (might be test mode limitation):", responseText);
         }
-        
-        if (!response.ok) {
-          console.error("[Contact] Resend API error:", response.status, responseData);
-          const errorMessage = responseData?.message || responseData?.error || `HTTP ${response.status}`;
-          throw new Error(`Email service error: ${errorMessage}`);
-        }
-
-        console.log("[Contact] Email sent successfully, id:", responseData.id);
-        return { success: true, message: "Email sent successfully", id: responseData.id };
       } catch (error) {
-        console.error("[Contact] Error sending email:", error);
-        // Message is logged above, so we can still return success
-        // This handles Resend test mode limitations gracefully
-        console.log("[Contact] Email delivery failed, but message was logged successfully");
-        return { 
-          success: true, 
-          message: "Message received successfully", 
-          id: savedMessageId || `log_${Date.now()}` 
-        };
+        console.error("[Contact] Error calling Resend API:", error);
       }
+      
+      // Always return success - message is saved to DB and logged
+      console.log("[Contact] Message processed successfully");
+      return { 
+        success: true, 
+        message: "Message received successfully", 
+        id: emailId || savedMessageId || `log_${Date.now()}` 
+      };
     }),
 
   getMessages: publicProcedure.query(async () => {
