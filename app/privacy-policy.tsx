@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Stack } from 'expo-router';
 import { Camera, MapPin, Shield, User, Lock } from 'lucide-react-native';
 import Colors from '@/constants/colors';
@@ -275,71 +275,79 @@ type Section = {
   footer?: string;
 };
 
+const BulletItem = React.memo(({ bullet }: { bullet: Bullet }) => (
+  <Text style={styles.bulletItem}>
+    {bullet.bold ? (
+      <>
+        <Text style={styles.bulletBold}>{bullet.bold}</Text> {bullet.text}
+      </>
+    ) : (
+      `• ${bullet.text}`
+    )}
+  </Text>
+));
+
+const SubsectionItem = React.memo(({ subsection }: { subsection: Subsection }) => (
+  <View>
+    <Text style={styles.subSectionTitle}>{subsection.title}</Text>
+    {subsection.content && <Text style={styles.paragraph}>{subsection.content}</Text>}
+    {subsection.bullets && (
+      <View style={styles.bulletList}>
+        {subsection.bullets.map((bullet, bIndex) => (
+          <BulletItem key={bIndex} bullet={bullet} />
+        ))}
+      </View>
+    )}
+  </View>
+));
+
+const SectionItem = React.memo(({ section }: { section: Section }) => (
+  <View>
+    <Text style={styles.sectionTitle}>{section.title}</Text>
+    {section.content && <Text style={styles.paragraph}>{section.content}</Text>}
+    {section.bullets && (
+      <View style={styles.bulletList}>
+        {section.bullets.map((bullet, bIndex) => (
+          <BulletItem key={bIndex} bullet={bullet} />
+        ))}
+      </View>
+    )}
+    {section.subsections?.map((sub, sIndex) => (
+      <SubsectionItem key={sIndex} subsection={sub} />
+    ))}
+    {section.infoBox && typeof section.infoBox === 'string' && (
+      <View style={styles.infoBox}>
+        <Lock size={16} color={Colors.light.primary} />
+        <Text style={styles.infoBoxText}>{section.infoBox}</Text>
+      </View>
+    )}
+    {section.infoBox && typeof section.infoBox === 'object' && (
+      <View style={styles.infoBox}>
+        <View>
+          <Text style={styles.infoBoxTitle}>{section.infoBox.title}</Text>
+          <Text style={styles.infoBoxText}>{section.infoBox.text}</Text>
+        </View>
+      </View>
+    )}
+    {section.contact && (
+      <>
+        <Text style={styles.contactInfo}>{section.contact.company}</Text>
+        <Text style={styles.contactInfo}>Email: {section.contact.email}</Text>
+        <Text style={styles.contactInfo}>Subject Line: {section.contact.subject}</Text>
+      </>
+    )}
+    {section.footer && <Text style={styles.paragraph}>{section.footer}</Text>}
+  </View>
+));
+
 export default function PrivacyPolicyScreen() {
-  const renderIcon = (iconName: string) => {
+  const renderIcon = useCallback((iconName: string) => {
     const IconComponent = iconMap[iconName as IconType];
     if (!IconComponent) return null;
     return <IconComponent size={20} color={Colors.light.primary} />;
-  };
+  }, []);
 
-  const renderBullet = (bullet: Bullet, index: number) => (
-    <Text key={index} style={styles.bulletItem}>
-      {bullet.bold ? (
-        <>
-          <Text style={styles.bulletBold}>{bullet.bold}</Text> {bullet.text}
-        </>
-      ) : (
-        `• ${bullet.text}`
-      )}
-    </Text>
-  );
-
-  const renderSubsection = (subsection: Subsection, index: number) => (
-    <View key={index}>
-      <Text style={styles.subSectionTitle}>{subsection.title}</Text>
-      {subsection.content && <Text style={styles.paragraph}>{subsection.content}</Text>}
-      {subsection.bullets && (
-        <View style={styles.bulletList}>
-          {subsection.bullets.map((bullet, bIndex) => renderBullet(bullet, bIndex))}
-        </View>
-      )}
-    </View>
-  );
-
-  const renderSection = (section: Section, index: number) => (
-    <View key={index}>
-      <Text style={styles.sectionTitle}>{section.title}</Text>
-      {section.content && <Text style={styles.paragraph}>{section.content}</Text>}
-      {section.bullets && (
-        <View style={styles.bulletList}>
-          {section.bullets.map((bullet, bIndex) => renderBullet(bullet, bIndex))}
-        </View>
-      )}
-      {section.subsections?.map((sub, sIndex) => renderSubsection(sub, sIndex))}
-      {section.infoBox && typeof section.infoBox === 'string' && (
-        <View style={styles.infoBox}>
-          <Lock size={16} color={Colors.light.primary} />
-          <Text style={styles.infoBoxText}>{section.infoBox}</Text>
-        </View>
-      )}
-      {section.infoBox && typeof section.infoBox === 'object' && (
-        <View style={styles.infoBox}>
-          <View>
-            <Text style={styles.infoBoxTitle}>{section.infoBox.title}</Text>
-            <Text style={styles.infoBoxText}>{section.infoBox.text}</Text>
-          </View>
-        </View>
-      )}
-      {section.contact && (
-        <>
-          <Text style={styles.contactInfo}>{section.contact.company}</Text>
-          <Text style={styles.contactInfo}>Email: {section.contact.email}</Text>
-          <Text style={styles.contactInfo}>Subject Line: {section.contact.subject}</Text>
-        </>
-      )}
-      {section.footer && <Text style={styles.paragraph}>{section.footer}</Text>}
-    </View>
-  );
+  const sections = useMemo(() => PRIVACY_POLICY.sections as Section[], []);
 
   return (
     <View style={styles.container}>
@@ -369,7 +377,9 @@ export default function PrivacyPolicyScreen() {
             </View>
           </View>
 
-          {PRIVACY_POLICY.sections.map((section, index) => renderSection(section as Section, index))}
+          {sections.map((section, index) => (
+            <SectionItem key={index} section={section} />
+          ))}
 
           <View style={styles.bottomPadding} />
         </View>
