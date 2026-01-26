@@ -171,7 +171,7 @@ export default function ScanScreen() {
           }
           
           const base64 = await FileSystem.readAsStringAsync(selectedImage, {
-            encoding: FileSystem.EncodingType.Base64,
+            encoding: 'base64',
           });
           
           const extension = selectedImage.split('.').pop()?.toLowerCase() || 'jpeg';
