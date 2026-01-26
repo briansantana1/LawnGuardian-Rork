@@ -206,9 +206,9 @@ export default function ScanScreen() {
             })).min(1).max(3),
           }),
           treatmentOptions: z.object({
-            organic: z.array(z.string()).min(2).max(4).describe("Organic treatment methods with specific actionable steps. Be detailed like 'Remove the seed head immediately by cutting or pulling it off to prevent seed dispersal' or 'Apply a selective broadleaf herbicide labeled safe for St. Augustine grass'"),
-            chemical: z.array(z.string()).min(2).max(4).describe("Chemical treatment options with specific products or active ingredients. Include timing advice like 'For organic control, pour boiling water directly on each dandelion plant or use a dandelion weeding tool to remove the entire taproot'"),
-            cultural: z.array(z.string()).min(2).max(4).describe("Cultural practices and lawn care adjustments like 'Fill any bare spots left behind with St. Augustine grass plugs or seed to prevent new weed establishment'"),
+            organic: z.array(z.string()).min(2).max(8).describe("Organic treatment methods with specific actionable steps. Be detailed like 'Remove the seed head immediately by cutting or pulling it off to prevent seed dispersal' or 'Apply a selective broadleaf herbicide labeled safe for St. Augustine grass'"),
+            chemical: z.array(z.string()).min(2).max(8).describe("Chemical treatment options with specific products or active ingredients. Include timing advice like 'For organic control, pour boiling water directly on each dandelion plant or use a dandelion weeding tool to remove the entire taproot'"),
+            cultural: z.array(z.string()).min(2).max(8).describe("Cultural practices and lawn care adjustments like 'Fill any bare spots left behind with St. Augustine grass plugs or seed to prevent new weed establishment'"),
           }),
           expectedRecovery: z.string().describe("Detailed recovery timeline like 'Week 1-2: Stop disease progression with treatment applications; existing damage remains visible. Week 3-4: New growth emerges healthy as treatment continues. Week 5-8: Significant recovery with new growth filling in thin areas. Full visual recovery expected in 8-12 weeks with proper treatment and favorable conditions.'"),
           preventionTips: z.array(z.string()).min(1).max(8).describe("Future prevention tips specific to the grass type. Be specific like 'Maintain thick, healthy St. Augustine grass through proper fertilization and watering' or 'Apply pre-emergent herbicide in early spring before dandelion seeds germinate'"),
