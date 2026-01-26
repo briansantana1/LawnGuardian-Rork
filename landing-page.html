@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lawn Guardian - AI-Powered Lawn Care</title>
+  <meta name="description" content="Scan, diagnose, and fix lawn problems in seconds. AI identifies diseases and weeds, then gives you the perfect treatment plan.">
+  <link rel="icon" type="image/png" href="https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/ccbx1jhd1l7c22g03kime">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #22C55E;
+      --primary-light: #4ADE80;
+      --primary-dark: #16A34A;
+      --background: #F0FDF4;
+      --surface: #FFFFFF;
+      --text: #1A1A1A;
+      --text-secondary: #4B5563;
+      --text-muted: #6B7280;
+      --border: #D1FAE5;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .hero {
+      background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.5)), 
+                  url('https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/66icr37rc219wnzeky2o6');
+      background-size: cover;
+      background-position: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .brand-name {
+      font-size: 24px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .badge-text {
+      font-size: 13px;
+      color: #FFFFFF;
+      opacity: 0.9;
+    }
+
+    .badge-dot {
+      color: var(--text-muted);
+    }
+
+    .badge-icon {
+      color: var(--primary);
+    }
+
+    h1 {
+      font-size: clamp(32px, 6vw, 48px);
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 16px;
+      line-height: 1.15;
+      max-width: 600px;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(16px, 3vw, 18px);
+      color: #FFFFFF;
+      opacity: 0.9;
+      max-width: 500px;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .download-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .store-badge {
+      height: 52px;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+
+    .store-badge:hover {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+
+    .feature-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 24px;
+    }
+
+    .feature-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border-radius: 24px;
+      font-size: 13px;
+      color: #FFFFFF;
+      font-weight: 500;
+    }
+
+    .feature-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .features-section {
+      padding: 80px 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 5vw, 36px);
+      font-weight: 700;
+      color: var(--primary-dark);
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(34, 197, 94, 0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(34, 197, 94, 0.12);
+    }
+
+    .feature-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .feature-icon svg {
+      width: 26px;
+      height: 26px;
+      color: var(--primary);
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .cta-section {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .cta-section h2 {
+      font-size: clamp(24px, 5vw, 32px);
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 12px;
+    }
+
+    .cta-section p {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 32px;
+      max-width: 450px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    footer {
+      background: var(--surface);
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .footer-logo img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+    }
+
+    .footer-logo span {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+
+    .copyright {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .works-with {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 16px;
+    }
+
+    @media (max-width: 480px) {
+      .hero {
+        padding: 60px 16px;
+      }
+
+      .feature-badges {
+        gap: 8px;
+      }
+
+      .feature-badge {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      .features-section {
+        padding: 60px 16px;
+      }
+
+      .feature-card {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <div class="header">
+      <img src="https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/ccbx1jhd1l7c22g03kime" alt="Lawn Guardian Logo" class="logo">
+      <span class="brand-name">Lawn Guardian</span>
+    </div>
+
+    <div class="badge-row">
+      <svg class="badge-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <span class="badge-text">AI-Powered</span>
+      <span class="badge-dot">•</span>
+      <span class="badge-text">Expert Diagnosis</span>
+    </div>
+
+    <h1>Get Outside and Touch Grass Again</h1>
+
+    <p class="hero-subtitle">
+      Scan, diagnose, and fix lawn problems in seconds. Our AI identifies diseases and weeds — then gives you the perfect treatment plan.
+    </p>
+
+    <div class="download-buttons">
+      <a href="https://apps.apple.com/app/lawn-guardian" target="_blank" rel="noopener">
+        <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" class="store-badge">
+      </a>
+      <a href="https://play.google.com/store/apps/details?id=app.rork.lawn_guardian_app" target="_blank" rel="noopener">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" class="store-badge">
+      </a>
+    </div>
+
+    <div class="feature-badges">
+      <div class="feature-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        AI-Powered
+      </div>
+      <div class="feature-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        Disease Detection
+      </div>
+      <div class="feature-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        Weed Detection
+      </div>
+      <div class="feature-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Expert Treatments
+      </div>
+    </div>
+
+    <p class="works-with">Works with all grass types</p>
+  </section>
+
+  <section class="features-section">
+    <h2 class="section-title">Everything You Need</h2>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        </div>
+        <h3>AI Photo Scan</h3>
+        <p>Upload a photo and get instant diagnosis of lawn problems with 99% accuracy using advanced AI recognition.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </div>
+        <h3>Weather Insights</h3>
+        <p>Track soil temperature and get treatment timing recommendations based on your local conditions.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        </div>
+        <h3>Treatment Tracker</h3>
+        <p>Log treatments and schedule upcoming lawn care tasks to keep your lawn in perfect condition.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        </div>
+        <h3>Weed Identification</h3>
+        <p>Instantly identify weeds in your lawn and get specific treatment recommendations to eliminate them.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 8 8"/><path d="m22 2-8 8"/><circle cx="12" cy="14" r="4"/><path d="M7 18h10"/><path d="M12 22v-4"/></svg>
+        </div>
+        <h3>Pest Detection</h3>
+        <p>Identify pests and insects affecting your lawn with AI-powered recognition and get treatment advice.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Expert Treatment Plans</h3>
+        <p>Get personalized treatment plans tailored to your specific lawn problems and grass type.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <h2>Ready to restore your lawn?</h2>
+    <p>Join thousands of homeowners using AI to keep their lawns healthy and beautiful.</p>
+    <div class="download-buttons">
+      <a href="https://apps.apple.com/app/lawn-guardian" target="_blank" rel="noopener">
+        <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" class="store-badge">
+      </a>
+      <a href="https://play.google.com/store/apps/details?id=app.rork.lawn_guardian_app" target="_blank" rel="noopener">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" class="store-badge">
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-logo">
+      <img src="https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/ccbx1jhd1l7c22g03kime" alt="Lawn Guardian">
+      <span>Lawn Guardian</span>
+    </div>
+
+    <div class="footer-links">
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="terms-of-use.html">Terms of Use</a>
+      <a href="mailto:support@lawnguardian.net">Contact Us</a>
+    </div>
+
+    <p class="copyright">&copy; 2026 Lawn Guardian&trade;. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>

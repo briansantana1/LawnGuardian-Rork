@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Use - Lawn Guardian</title>
+  <link rel="icon" type="image/png" href="https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/ccbx1jhd1l7c22g03kime">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #22C55E;
+      --primary-dark: #16A34A;
+      --background: #F0FDF4;
+      --surface: #FFFFFF;
+      --text: #1A1A1A;
+      --text-secondary: #4B5563;
+      --text-muted: #6B7280;
+      --border: #D1FAE5;
+      --warning: #FEF3C7;
+      --warning-text: #B45309;
+      --danger: #FEE2E2;
+      --danger-text: #DC2626;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.7;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-content {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo { width: 36px; height: 36px; border-radius: 8px; }
+    .brand { font-size: 18px; font-weight: 600; color: var(--text); text-decoration: none; }
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .date { font-size: 14px; color: var(--text-secondary); }
+    .effective { font-size: 14px; color: var(--primary); margin-bottom: 32px; }
+    .warning-box {
+      background: var(--warning);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 32px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .warning-box svg { width: 24px; height: 24px; color: var(--warning-text); flex-shrink: 0; margin-top: 2px; }
+    .warning-box h3 { font-size: 15px; font-weight: 600; color: var(--warning-text); margin-bottom: 8px; }
+    .warning-box p { font-size: 14px; color: #92400E; margin: 0; }
+    .danger-box {
+      background: var(--danger);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 24px 0;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .danger-box svg { width: 24px; height: 24px; color: var(--danger-text); flex-shrink: 0; margin-top: 2px; }
+    .danger-box h3 { font-size: 15px; font-weight: 600; color: var(--danger-text); margin-bottom: 8px; }
+    .danger-box p { font-size: 14px; color: #991B1B; margin: 0; }
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 40px;
+      margin-bottom: 16px;
+    }
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+    p { font-size: 15px; color: var(--text-secondary); margin-bottom: 16px; }
+    ul { margin-bottom: 16px; padding-left: 8px; }
+    li {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      list-style: none;
+    }
+    li::before { content: "•"; color: var(--primary); font-weight: bold; margin-right: 10px; }
+    strong { color: var(--text); font-weight: 600; }
+    .info-box {
+      background: var(--warning);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+    .info-box h4 { font-size: 14px; font-weight: 600; color: var(--warning-text); margin-bottom: 8px; }
+    .info-box p { margin: 0; color: #92400E; font-size: 14px; }
+    .info-box ul { margin-top: 8px; margin-bottom: 0; }
+    .info-box li { color: #92400E; font-size: 14px; }
+    .contact-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+    .contact-box h4 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+    .contact-box p { margin-bottom: 4px; }
+    .final-note {
+      font-style: italic;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 32px 20px;
+      text-align: center;
+    }
+    .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; flex-wrap: wrap; }
+    .footer-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+    .footer-links a:hover { color: var(--primary); }
+    .copyright { font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <img src="https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/ccbx1jhd1l7c22g03kime" alt="Lawn Guardian" class="logo">
+      <a href="landing-page.html" class="brand">Lawn Guardian</a>
+    </div>
+  </header>
+
+  <main>
+    <h1>Terms of Use</h1>
+    <p class="date">Last updated: January 18, 2026</p>
+    <p class="effective">Effective date: January 18, 2026</p>
+
+    <div class="warning-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      <div>
+        <h3>Important Legal Notice</h3>
+        <p>Please read these Terms of Use carefully before using the Lawn Guardian app. By downloading, installing, or using this app, you agree to be bound by these terms. If you disagree with any part of these terms, you may not use the app.</p>
+      </div>
+    </div>
+
+    <h2>1. Acceptance of Terms</h2>
+    <p>Welcome to Lawn Guardian. These Terms of Use ("Terms," "Agreement") constitute a legally binding agreement between you ("User," "you," "your") and Lawn Guardian ("Company," "we," "us," "our") governing your access to and use of the Lawn Guardian mobile application (the "App") and related services (collectively, the "Service").</p>
+    <p>By creating an account, downloading, installing, accessing, or using the Service, you acknowledge that you have read, understood, and agree to be bound by these Terms and our Privacy Policy. If you do not agree to these Terms, you must immediately stop using the Service and uninstall the App.</p>
+
+    <h2>2. Eligibility</h2>
+    <p>You must be at least 13 years old (or 16 in the European Economic Area) to use the Service. If you are under 18, you represent that you have your parent or guardian's permission to use the Service. By using the Service, you represent and warrant that you meet these eligibility requirements.</p>
+
+    <h2>3. Description of Service</h2>
+    <p>Lawn Guardian is an AI-powered lawn care application that provides:</p>
+    <ul>
+      <li>Image-based lawn disease and weed identification using artificial intelligence</li>
+      <li>Personalized treatment recommendations using Integrated Pest Management (IPM) protocols</li>
+      <li>Location-based weather forecasts and soil temperature monitoring</li>
+      <li>Push notifications and alerts based on environmental conditions</li>
+      <li>A database of common lawn issues with regional applicability</li>
+      <li>Treatment plan storage, management, and history tracking</li>
+    </ul>
+
+    <h2>4. User Accounts</h2>
+    
+    <h3>4.1 Account Creation</h3>
+    <p>To access certain features of the Service, you must create an account. You may register using your email address or through third-party authentication services (Apple ID, Google). You agree to:</p>
+    <ul>
+      <li>Provide accurate, current, and complete information during registration</li>
+      <li>Maintain and promptly update your account information</li>
+      <li>Maintain the security and confidentiality of your login credentials</li>
+      <li>Accept responsibility for all activities under your account</li>
+      <li>Notify us immediately of any unauthorized use of your account</li>
+    </ul>
+
+    <h3>4.2 Account Termination</h3>
+    <p>You may delete your account at any time by contacting us at info.lawnguardian@yahoo.com. Upon account deletion, your personal data will be deleted in accordance with our Privacy Policy. We may terminate or suspend your account for violations of these Terms.</p>
+
+    <h2>5. Subscriptions and Payments</h2>
+
+    <h3>5.1 Free and Paid Features</h3>
+    <p>The App offers both free features with limited functionality and premium subscription plans ("Pro") with enhanced features. Free users receive a limited number of lawn scans per month.</p>
+
+    <h3>5.2 Subscription Plans</h3>
+    <p>We offer the following subscription options:</p>
+    <ul>
+      <li><strong>Pro Weekly:</strong> $5.99 per week</li>
+      <li><strong>Pro Annual:</strong> $79.99 per year ($6.67/month, billed annually) - Best value, save 74%</li>
+    </ul>
+    <p>Prices are in US dollars and may vary by region. Prices are subject to change with notice.</p>
+
+    <div class="info-box">
+      <h4>Auto-Renewal Notice</h4>
+      <p>Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period.</p>
+    </div>
+
+    <h3>5.3 How to Cancel</h3>
+    <p><strong>For iOS (Apple):</strong> Go to Settings &rarr; [Your Name] &rarr; Subscriptions &rarr; Lawn Guardian &rarr; Cancel Subscription</p>
+    <p><strong>For Android (Google Play):</strong> Go to Google Play Store &rarr; Menu &rarr; Subscriptions &rarr; Lawn Guardian &rarr; Cancel</p>
+
+    <h3>5.4 Refund Policy</h3>
+    <ul>
+      <li><strong>No prorated refunds:</strong> We do not provide refunds or credits for partial subscription periods. When you cancel, you keep access until the end of your current billing period.</li>
+      <li><strong>Apple App Store:</strong> All refund requests for iOS purchases must be submitted directly to Apple through their refund process.</li>
+      <li><strong>Google Play Store:</strong> All refund requests for Android purchases must be submitted directly to Google through their refund process.</li>
+    </ul>
+
+    <h2>6. Use of Service</h2>
+
+    <h3>6.1 License Grant</h3>
+    <p>Subject to your compliance with these Terms, we grant you a limited, non-exclusive, non-transferable, revocable license to download, install, and use the App on a device you own or control for personal, non-commercial purposes.</p>
+
+    <h3>6.2 Prohibited Uses</h3>
+    <p>You agree not to:</p>
+    <ul>
+      <li>Use the Service for any unlawful purpose or in violation of any applicable laws</li>
+      <li>Attempt to gain unauthorized access to any portion of the Service or its systems</li>
+      <li>Interfere with or disrupt the Service, servers, or networks</li>
+      <li>Reverse engineer, decompile, disassemble, or attempt to derive source code</li>
+      <li>Copy, modify, distribute, sell, or lease any part of the Service</li>
+      <li>Use automated systems (bots, scrapers) to access the Service</li>
+      <li>Upload malicious code, viruses, or harmful content</li>
+    </ul>
+
+    <h2>7. User Content</h2>
+    <p>You retain ownership of any content you submit, upload, or display through the Service, including lawn images and notes ("User Content"). By submitting User Content, you grant us a worldwide, non-exclusive, royalty-free, sublicensable license to use, reproduce, modify, adapt, process, and display such content solely for the purpose of providing, improving, and developing the Service.</p>
+
+    <h2>8. AI-Generated Recommendations Disclaimer</h2>
+
+    <div class="danger-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      <div>
+        <h3>Important Safety Disclaimer</h3>
+        <p>The lawn care diagnoses, treatment recommendations, and other information provided by Lawn Guardian are generated by artificial intelligence and are for educational and informational purposes only. While we strive for accuracy using industry-leading AI technology, we cannot guarantee that AI-generated diagnoses will be 100% correct.</p>
+      </div>
+    </div>
+
+    <ul>
+      <li><strong>Not Professional Advice:</strong> Recommendations should not be considered as professional lawn care, agricultural, or pest control advice</li>
+      <li><strong>Consult Experts:</strong> For serious lawn issues, always consult with a qualified lawn care professional or your local agricultural extension office</li>
+      <li><strong>Verify Recommendations:</strong> Cross-reference AI recommendations with authoritative sources</li>
+      <li><strong>Your Responsibility:</strong> You are solely responsible for any actions you take based on the Service's recommendations</li>
+    </ul>
+
+    <h2>9. Chemical Treatment Responsibility</h2>
+    <p>The Service may provide recommendations for chemical treatments including pesticides, herbicides, fungicides, and fertilizers. You acknowledge and agree that:</p>
+    <ul>
+      <li><strong>Legal Compliance:</strong> You are solely responsible for following all applicable laws and regulations regarding lawn care chemicals</li>
+      <li><strong>Product Labels:</strong> You must always read and follow all product labels, instructions, and safety data sheets</li>
+      <li><strong>Safety Equipment:</strong> You should wear appropriate personal protective equipment when handling and applying chemicals</li>
+      <li><strong>Professional Application:</strong> Some products may require professional application or licensing in your jurisdiction</li>
+      <li><strong>No Liability:</strong> We are not responsible for any harm, injury, damage, or legal issues resulting from your use of recommended products</li>
+    </ul>
+
+    <h2>10. Intellectual Property</h2>
+    <p>The Service and its original content (excluding User Content), features, functionality, design, graphics, and trademarks are and will remain the exclusive property of Lawn Guardian and its licensors. The Service is protected by copyright, trademark, and other intellectual property laws.</p>
+
+    <h2>11. Disclaimer of Warranties</h2>
+    <p>THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND ACCURACY OF INFORMATION.</p>
+
+    <h2>12. Limitation of Liability</h2>
+    <p>TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL LAWN GUARDIAN BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, PUNITIVE, OR EXEMPLARY DAMAGES, INCLUDING DAMAGES FOR LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES.</p>
+    <p>IN NO EVENT SHALL OUR TOTAL LIABILITY TO YOU EXCEED THE AMOUNT YOU PAID TO US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM, OR $100 USD, WHICHEVER IS GREATER.</p>
+
+    <h2>13. Dispute Resolution</h2>
+    
+    <h3>13.1 Informal Resolution</h3>
+    <p>Before filing any legal claim, you agree to try to resolve the dispute informally by contacting us at info.lawnguardian@yahoo.com. We will attempt to resolve the dispute within 60 days.</p>
+
+    <h3>13.2 Governing Law</h3>
+    <p>These Terms shall be governed by and construed in accordance with the laws of the State of Delaware, United States, without regard to its conflict of law provisions.</p>
+
+    <h2>14. Changes to Terms</h2>
+    <p>We reserve the right to modify these Terms at any time. We will provide notice of material changes by posting the updated Terms in the App, updating the "Last updated" date, and sending a notification for significant changes. Your continued use of the Service after the effective date constitutes acceptance of the modified Terms.</p>
+
+    <h2>15. Contact Us</h2>
+    <p>If you have any questions about these Terms of Use, please contact us:</p>
+    <div class="contact-box">
+      <h4>Lawn Guardian</h4>
+      <p><strong>Email:</strong> info.lawnguardian@yahoo.com</p>
+      <p><strong>Subject Line:</strong> Terms of Use Inquiry</p>
+    </div>
+
+    <p class="final-note">By using Lawn Guardian, you acknowledge that you have read, understood, and agree to be bound by these Terms of Use.</p>
+  </main>
+
+  <footer>
+    <div class="footer-links">
+      <a href="landing-page.html">Home</a>
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="terms-of-use.html">Terms of Use</a>
+      <a href="mailto:info.lawnguardian@yahoo.com">Contact Us</a>
+    </div>
+    <p class="copyright">&copy; 2026 Lawn Guardian. All rights reserved.</p>
+  </footer>
+</body>
+</html>
